@@ -1,6 +1,7 @@
 package com.busanit501.findmyfet.controller;
 
 import com.busanit501.findmyfet.domain.LostPetPost;
+import com.busanit501.findmyfet.dto.LostPetSearchCriteria;
 import com.busanit501.findmyfet.service.LostPetPostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

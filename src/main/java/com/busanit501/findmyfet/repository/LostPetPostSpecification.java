@@ -1,7 +1,7 @@
 package com.busanit501.findmyfet.repository;
 
-import com.example.petfinder.dto.LostPetSearchCriteria;
-import com.example.petfinder.entity.LostPetPost;
+import com.busanit501.findmyfet.dto.LostPetSearchCriteria;
+import com.busanit501.findmyfet.domain.LostPetPost;
 import org.springframework.data.jpa.domain.Specification;
 
 import jakarta.persistence.criteria.Predicate;

@@ -1,3 +1,5 @@
+package com.busanit501.findmyfet.dto;
+
 import com.busanit501.findmyfet.domain.LostPetPost;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
