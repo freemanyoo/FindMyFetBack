@@ -1,8 +1,8 @@
 package com.busanit501.findmyfet.controller;
 
-import com.busanit501.findmyfet.domain.LostPetPost;
-import com.busanit501.findmyfet.dto.LostPetSearchCriteria;
-import com.busanit501.findmyfet.service.LostPetPostService;
+import com.busanit501.findmyfet.domain.FindPetPost;
+import com.busanit501.findmyfet.dto.FindPetSearchCriteria;
+import com.busanit501.findmyfet.service.FindPetPostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,24 +15,24 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/lost-pets")
+@RequestMapping("/api/find-pets")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*") // React 앱에서 호출을 위한 CORS 설정
 @Slf4j
-public class LostPetPostController {
+public class FindPetPostController {
 
-    private final LostPetPostService lostPetPostService;
+    private final FindPetPostService findPetPostService;
 
     /**
      * 분실 신고 게시글 검색 및 필터링
-     * GET /api/lost-pets/search
+     * GET /api/find-pets/search
      */
     @GetMapping("/search")
-    public ResponseEntity<Map<String, Object>> searchLostPets(
-            @Valid @ModelAttribute LostPetSearchCriteria criteria) {
+    public ResponseEntity<Map<String, Object>> searchFindPets(
+            @Valid @ModelAttribute FindPetSearchCriteria criteria) {
 
         try {
-            Page<LostPetPost> result = lostPetPostService.searchLostPetPosts(criteria);
+            Page<FindPetPost> result = findPetPostService.searchFindPetPosts(criteria);
 
             Map<String, Object> response = new HashMap<>();
             response.put("content", result.getContent());
@@ -56,7 +56,7 @@ public class LostPetPostController {
 
     /**
      * 필터 옵션을 위한 기본 데이터 조회
-     * GET /api/lost-pets/filter-options
+     * GET /api/find-pets/filter-options
      */
     @GetMapping("/filter-options")
     public ResponseEntity<Map<String, Object>> getFilterOptions() {
@@ -64,13 +64,13 @@ public class LostPetPostController {
             Map<String, Object> options = new HashMap<>();
 
             // 동물 타입 목록
-            options.put("animalTypes", lostPetPostService.getAllAnimalTypes());
+            options.put("animalTypes", findPetPostService.getAllAnimalTypes());
 
             // 성별 목록
-            options.put("genders", lostPetPostService.getAllGenders());
+            options.put("genders", findPetPostService.getAllGenders());
 
             // 시·도 목록
-            options.put("cityProvinces", lostPetPostService.getAllCityProvinces());
+            options.put("cityProvinces", findPetPostService.getAllCityProvinces());
 
             return ResponseEntity.ok(options);
 
@@ -84,12 +84,12 @@ public class LostPetPostController {
 
     /**
      * 특정 시·도의 군/구 목록 조회
-     * GET /api/lost-pets/districts?cityProvince=서울특별시
+     * GET /api/find-pets/districts?cityProvince=서울특별시
      */
     @GetMapping("/districts")
     public ResponseEntity<List<String>> getDistricts(@RequestParam String cityProvince) {
         try {
-            List<String> districts = lostPetPostService.getDistrictsByCity(cityProvince);
+            List<String> districts = findPetPostService.getDistrictsByCity(cityProvince);
             return ResponseEntity.ok(districts);
 
         } catch (IllegalArgumentException e) {
@@ -104,12 +104,12 @@ public class LostPetPostController {
 
     /**
      * 특정 동물 타입의 품종 목록 조회
-     * GET /api/lost-pets/breeds?animalType=DOG
+     * GET /api/find-pets/breeds?animalType=DOG
      */
     @GetMapping("/breeds")
-    public ResponseEntity<List<String>> getBreeds(@RequestParam LostPetPost.AnimalType animalType) {
+    public ResponseEntity<List<String>> getBreeds(@RequestParam FindPetPost.AnimalType animalType) {
         try {
-            List<String> breeds = lostPetPostService.getBreedsByAnimalType(animalType);
+            List<String> breeds = findPetPostService.getBreedsByAnimalType(animalType);
             return ResponseEntity.ok(breeds);
 
         } catch (IllegalArgumentException e) {
@@ -124,12 +124,12 @@ public class LostPetPostController {
 
     /**
      * 특정 게시글 상세 조회
-     * GET /api/lost-pets/{id}
+     * GET /api/find-pets/{id}
      */
     @GetMapping("/{id}")
-    public ResponseEntity<LostPetPost> getLostPetPost(@PathVariable Long id) {
+    public ResponseEntity<FindPetPost> getFindPetPost(@PathVariable Long id) {
         try {
-            LostPetPost post = lostPetPostService.findById(id);
+            FindPetPost post = findPetPostService.findById(id);
             return ResponseEntity.ok(post);
 
         } catch (RuntimeException e) {
@@ -144,12 +144,12 @@ public class LostPetPostController {
 
     /**
      * 검색 완료 상태 토글
-     * PATCH /api/lost-pets/{id}/toggle-found
+     * PATCH /api/find-pets/{id}/toggle-found
      */
     @PatchMapping("/{id}/toggle-found")
     public ResponseEntity<Map<String, Object>> toggleFoundStatus(@PathVariable Long id) {
         try {
-            LostPetPost updatedPost = lostPetPostService.toggleFoundStatus(id);
+            FindPetPost updatedPost = findPetPostService.toggleFoundStatus(id);
 
             Map<String, Object> response = new HashMap<>();
             response.put("id", updatedPost.getId());

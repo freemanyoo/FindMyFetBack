@@ -1,16 +1,16 @@
 package com.busanit501.findmyfet.repository;
 
-import com.busanit501.findmyfet.dto.LostPetSearchCriteria;
-import com.busanit501.findmyfet.domain.LostPetPost;
+import com.busanit501.findmyfet.dto.FindPetSearchCriteria;
+import com.busanit501.findmyfet.domain.FindPetPost;
 import org.springframework.data.jpa.domain.Specification;
 
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LostPetPostSpecification {
+public class FindPetPostSpecification {
 
-    public static Specification<LostPetPost> withCriteria(LostPetSearchCriteria criteria) {
+    public static Specification<FindPetPost> withCriteria(FindPetSearchCriteria criteria) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 

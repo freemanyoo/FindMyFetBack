@@ -1,7 +1,9 @@
 package com.busanit501.findmyfet.dto;
 
-import com.busanit501.findmyfet.domain.LostPetPost;
+import com.busanit501.findmyfet.domain.FindPetPost;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +15,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LostPetSearchCriteria {
+public class FindPetSearchCriteria {
 
     // 검색 조건
     private String title;        // 제목 검색 (부분 일치)
@@ -29,17 +31,27 @@ public class LostPetSearchCriteria {
     private String cityProvince;     // 시·도
     private String district;         // 군/구
 
-    private LostPetPost.AnimalType animalType; // 동물 종류
+    private FindPetPost.AnimalType animalType; // 동물 종류
     private String breed;            // 품종
-    private LostPetPost.Gender gender; // 성별
+    private FindPetPost.Gender gender; // 성별
 
     // 토글 옵션
     private Boolean isFound;         // 검색 완료 여부 (null이면 전체, true면 완료, false면 미완료)
 
-    // 페이징
+    // 페이징 및 검증 추가
+    @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다")
+    @Builder.Default
     private int page = 0;           // 페이지 번호 (0부터 시작)
+
+    @Min(value = 1, message = "페이지 크기는 1 이상이어야 합니다")
+    @Max(value = 100, message = "페이지 크기는 100 이하여야 합니다")
+    @Builder.Default
     private int size = 20;          // 페이지 크기
+
+    @Builder.Default
     private String sortBy = "createdAt"; // 정렬 필드
+
+    @Builder.Default
     private String sortDir = "DESC"; // 정렬 방향
 
     // 헬퍼 메서드들
@@ -65,5 +77,13 @@ public class LostPetSearchCriteria {
 
     public boolean hasBreed() {
         return breed != null && !breed.trim().isEmpty();
+    }
+
+    // 날짜 범위 유효성 검증
+    public boolean isDateRangeValid() {
+        if (lostDateFrom != null && lostDateTo != null) {
+            return !lostDateFrom.isAfter(lostDateTo);
+        }
+        return true;
     }
 }

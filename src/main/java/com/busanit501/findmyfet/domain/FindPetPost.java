@@ -12,12 +12,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "lost_pet_posts")
+@Table(name = "find_pet_posts")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LostPetPost {
+public class FindPetPost {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -56,6 +56,7 @@ public class LostPetPost {
 
     // 검색 완료 여부
     @Column(name = "is_found")
+    @Builder.Default
     private Boolean isFound = false;
 
     // 연락처
