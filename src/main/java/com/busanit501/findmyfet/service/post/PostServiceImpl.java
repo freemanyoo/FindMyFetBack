@@ -1,13 +1,14 @@
 package com.busanit501.findmyfet.service.post;
 
+import com.busanit501.findmyfet.domain.Role;
+import com.busanit501.findmyfet.domain.User;
 import com.busanit501.findmyfet.domain.post.Image;
 import com.busanit501.findmyfet.domain.post.Post;
-import com.busanit501.findmyfet.dto.post.PostCreateRequestDto;
-import com.busanit501.findmyfet.dto.post.PostDetailResponseDto;
-import com.busanit501.findmyfet.dto.post.PostListResponseDto;
-import com.busanit501.findmyfet.dto.post.PostUpdateRequestDto;
-import com.busanit501.findmyfet.repository.ImageRepository;
-import com.busanit501.findmyfet.repository.PostRepository;
+import com.busanit501.findmyfet.dto.post.*;
+import com.busanit501.findmyfet.repository.post.ImageRepository;
+import com.busanit501.findmyfet.repository.post.PostRepository;
+import com.busanit501.findmyfet.repository.user.UserRepository;
+import org.springframework.security.access.AccessDeniedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final ImageRepository imageRepository;
     private final FileUploadService fileUploadService;
+    private final UserRepository  userRepository;
 
     // 전체 게시글리스트 조회기능
     @Override
@@ -41,11 +43,16 @@ public class PostServiceImpl implements PostService {
     // 게시글 등록기능
     @Override
     @Transactional
-    public Long createPost(PostCreateRequestDto requestDto, List<MultipartFile> images) {
+    public Long createPost(PostCreateRequestDto requestDto, List<MultipartFile> images, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다. id=" + userId));
+
         // 1-1. DTO를 Post 엔티티로 변환 후 저장
         Post post = requestDto.toEntity();
+        post.setUser(user); //
+
         Post savedPost = postRepository.save(post);
-        log.info("Saved Post: {}", savedPost.getId());//
+        log.info("Saved Post: {}, Author: {}", savedPost.getId(), user.getName());
 
         if (images != null && !images.isEmpty()) {
             for (MultipartFile imageFile : images) {
@@ -80,11 +87,24 @@ public class PostServiceImpl implements PostService {
         return new PostDetailResponseDto(post);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<MyPostResponseDto> findMyPosts(Long userId) {
+        return postRepository.findByUser_UseridOrderByCreatedAtDesc(userId)
+                .stream()
+                .map(MyPostResponseDto::new)
+                .collect(Collectors.toList());
+    }
+
     // 삭제기능
-    public void deletePost(Long postId) {
+    @Override
+    @Transactional
+    public void deletePost(Long postId,  Long userId) {
         // 1. 게시글 ID로 Post 엔티티 조회
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. id=" + postId));
+
+        validatePostAuthorOrAdmin(post, userId); // 권한 검사
 
         // 2. 연관된 이미지 파일들을 서버에서 삭제
         if (post.getImages() != null && !post.getImages().isEmpty()) {
@@ -105,12 +125,12 @@ public class PostServiceImpl implements PostService {
     // 게시글 수정기능
     @Override
     @Transactional
-    public void updatePost(Long postId, PostUpdateRequestDto requestDto, List<MultipartFile> newImages) {
+    public void updatePost(Long postId, PostUpdateRequestDto requestDto, List<MultipartFile> newImages, Long userId) {
         // 1. 게시글 ID로 Post 엔티티 조회
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. " + postId));
-        log.info("Updating Post ID: {}", postId);
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. id=" + postId));
 
+        validatePostAuthorOrAdmin(post, userId); // 권한 검사
 
         // 2. 기존 이미지 파일 삭제 (간단한 버전: 모든 기존 이미지를 삭제하고 새로 추가)
         if (requestDto.getDeletedImageIds() != null && !requestDto.getDeletedImageIds().isEmpty()) {
@@ -140,8 +160,14 @@ public class PostServiceImpl implements PostService {
                 requestDto.getTitle(),
                 requestDto.getContent(),
                 requestDto.getAnimalName(),
+                requestDto.getAnimalAge(),
+                requestDto.getAnimalCategory(),
+                requestDto.getAnimalBreed(),
+                requestDto.getLostTime(),
                 requestDto.getLatitude(),
-                requestDto.getLongitude()
+                requestDto.getLongitude(),
+                requestDto.getLocation(),
+                requestDto.getPostType()
         );
 
 //        더티 체킹 (Dirty Checking):
@@ -166,12 +192,16 @@ public class PostServiceImpl implements PostService {
         // 트랜잭션 커밋 ->  더티 체킹 -> post가 자동으로 DB에 반영
     }
 
+    // 찾기완료 처리하는기능
     @Override
     @Transactional
-    public void completePost(Long postId) {
+    public void completePost(Long postId, Long userId) {
         // 1. 게시글 엔티티 조회
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. id=" + postId));
+
+        validatePostAuthorOrAdmin(post, userId); // 권한 검사
+
         log.info("Completing Post ID: {}", postId);
 
         // 2. 게시글 상태를 'COMPLETED'로 변경
@@ -179,4 +209,15 @@ public class PostServiceImpl implements PostService {
 
         // 3. 더티 체킹에 의해 트랜잭션 종료 시 자동으로 UPDATE 쿼리 실행됨
     }
-}
+
+    //== 검증 로직 (관리자 권한 추가) ==//
+    private void validatePostAuthorOrAdmin(Post post, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다. id=" + userId));
+
+        // 현재 로그인한 사용자가 게시글 작성자도 아니고, 관리자도 아니면 예외 발생
+        if (!post.getUser().getUserid().equals(userId) && user.getRole() != Role.Admin) {
+            throw new AccessDeniedException("해당 게시글에 대한 수정/삭제 권한이 없습니다.");
+        }
+    }
+} // <<<<<<< 클래스 닫는 괄호

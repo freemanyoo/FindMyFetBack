@@ -1,6 +1,7 @@
 package com.busanit501.findmyfet.dto.post;
 
 import com.busanit501.findmyfet.domain.post.Post;
+import com.busanit501.findmyfet.dto.user.AuthorDto;
 import lombok.Getter;
 
 @Getter
@@ -12,7 +13,8 @@ public class PostListResponseDto {
     private String postType;
     private String status;
 //    private LocalDateTime createdAt;
-    // private AuthorDto author; // User 기능 연동 후 추가
+
+    private AuthorDto author; // AuthorDto 필드 추가
 
     // 엔티티를 DTO로 변환하는 생성자
     public PostListResponseDto(Post entity) {
@@ -22,5 +24,8 @@ public class PostListResponseDto {
         this.postType = entity.getPostType().name();
         this.status = entity.getStatus().name();
 //        this.createdAt = entity.getCreatedAt();
+        if (entity.getUser() != null) {
+            this.author = new AuthorDto(entity.getUser()); // getMember() -> getUser()
+        }
     }
 }

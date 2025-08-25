@@ -17,8 +17,12 @@ public class PostUpdateRequestDto {
     private String animalCategory;
     private String animalBreed;
     private LocalDateTime lostTime;
+
     private double latitude;
     private double longitude;
+
+    private String location; // <<<<<<<<<<<< 추가 250825
+
     private PostType postType;
 
     // 추가: 수정 시 삭제할 기존 이미지의 ID 목록

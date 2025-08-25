@@ -1,6 +1,7 @@
 package com.busanit501.findmyfet.domain.post;
 
 import com.busanit501.findmyfet.domain.BaseEntity;
+import com.busanit501.findmyfet.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,7 +14,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor // Builder 패턴 쓰기위해서 모든 필드에 생성자 추가
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@ToString(exclude = {"images"}) // images 필드는 ToString에서 제외
+@ToString(exclude = {"images", "user"}) // images 필드는 ToString에서 제외
 public class Post extends BaseEntity {
 
     @Id
@@ -35,8 +36,10 @@ public class Post extends BaseEntity {
 
     private LocalDateTime lostTime; // 실종 시간
 
-//    private double latitude;  // 위도
-//    private double longitude; // 경도
+    private double latitude;  // 위도
+    private double longitude; // 경도
+
+    private String location; // <<<<<<<<<<<< 잃어버린 장소 추가 250825
 
     @Enumerated(EnumType.STRING) // "MISSING", "SHELTER" 같은 문자열로 저장
     @Column(nullable = false)
@@ -54,10 +57,15 @@ public class Post extends BaseEntity {
     @Builder.Default // 빌더 패턴 사용 시 기본값으로 초기화
     private List<Image> images = new ArrayList<>();
 
-    // TODO: User 엔티티와 연관관계 설정 (DAY 1 후반 또는 DAY 2)
-    // @ManyToOne(fetch = FetchType.LAZY)
-    // @JoinColumn(name = "user_id")
-    // private User user;
+    // 연관관계의 주인 : Post(N쪽)
+     @ManyToOne(fetch = FetchType.LAZY)
+     @JoinColumn(name = "user_id", nullable = false) // user_id 컬럼으로 조인
+     private User user;
+
+    //== 연관관계 편의 메서드 ==//
+    public void setUser(User user) {
+        this.user = user;
+    }
 
     // 연관관계 편의 메서드
     public void addImage(Image image) {
@@ -65,14 +73,20 @@ public class Post extends BaseEntity {
         image.setPost(this);
     }
 
-    // 비즈니스 로직 : 업데이트
-    public void update(String title, String content, String animalName, /*...모든 필드...*/ double latitude, double longitude) {
+    // 비즈니스 로직 : 업데이트 (모든 필드를 받도록)
+    public void update(String title, String content, String animalName, int animalAge, String animalCategory,
+                       String animalBreed, LocalDateTime lostTime, double latitude, double longitude, String location, PostType postType) {
         this.title = title;
         this.content = content;
         this.animalName = animalName;
-        // ... this.필드 = 파라미터;
-//        this.latitude = latitude;
-//        this.longitude = longitude;
+        this.animalAge = animalAge;
+        this.animalCategory = animalCategory;
+        this.animalBreed = animalBreed;
+        this.lostTime = lostTime;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.location = location; // 잃어버린장소 추가 250825
+        this.postType = postType;
     }
 
     //Post 엔티티 스스로 자신의 상태를 바꾸도록 메서드
