@@ -1,8 +1,8 @@
 package com.busanit501.findmyfet.controller;
 
-import com.busanit501.findmyfet.domain.Post;
-import com.busanit501.findmyfet.domain.User;
 import com.busanit501.findmyfet.dto.CommentDTO;
+import com.busanit501.findmyfet.repository.UserRepository;
+import com.busanit501.findmyfet.security.JwtUtil;
 import com.busanit501.findmyfet.service.CommentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,123 +11,175 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CommentController.class)
 public class CommentControllerTests {
 
+    @MockBean
+    private JpaMetamodelMappingContext jpaMetamodelMappingContext;
+
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockBean
     private CommentService commentService;
 
-    private CommentDTO mockCommentDto;
-    private ObjectMapper objectMapper = new ObjectMapper();
+    @MockBean
+    private JwtUtil jwtUtil;
+
+    @MockBean
+    private UserRepository userRepository;
+
+    private CommentDTO mockCommentDtoWithImage;
+    private CommentDTO mockCommentDtoWithoutImage;
 
     @BeforeEach
-    void setup() {
-        mockCommentDto = CommentDTO.builder()
+    void setUp() {
+        mockCommentDtoWithImage = CommentDTO.builder()
                 .commentId(1L)
                 .postId(1L)
-                .userId(1L) // 로그인한 유저 ID
-                .content("테스트 댓글 내용")
+                .userId(1L)
+                .content("테스트 댓글입니다.")
+                .imageUrl("test_image.jpg")
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        mockCommentDtoWithoutImage = CommentDTO.builder()
+                .commentId(2L)
+                .postId(1L)
+                .userId(1L)
+                .content("이미지 없는 댓글입니다.")
+                .imageUrl(null)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
     }
 
-    // --- DAY 1 테스트: 댓글 목록 조회 (인증 불필요) ---
     @Test
-    @DisplayName("게시글 ID로 댓글 목록을 조회하면 200 OK와 함께 댓글 리스트를 반환한다")
-    void getCommentListTest() throws Exception {
-        List<CommentDTO> mockComments = Arrays.asList(mockCommentDto, new CommentDTO());
-        given(commentService.getCommentsByPostId(any(Long.class))).willReturn(mockComments);
+    @DisplayName("게시글 댓글 목록 조회 테스트")
+    @WithMockUser
+    public void getCommentListTest() throws Exception {
+        Long postId = 1L;
+        List<CommentDTO> commentList = Collections.singletonList(mockCommentDtoWithImage);
+        given(commentService.getCommentsByPostId(postId)).willReturn(commentList);
 
-        mockMvc.perform(get("/api/comment/list/1"))
+        mockMvc.perform(get("/api/posts/{postId}/comments", postId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].commentId").value(1));
+                .andExpect(jsonPath("$[0].content").value(mockCommentDtoWithImage.getContent()));
     }
 
-    // --- DAY 2 & 3 테스트: 댓글 작성 (인증 필요) ---
     @Test
-    @WithMockUser(username = "testuser", roles = "USER")
-    @DisplayName("댓글 작성 요청 시 201 Created와 함께 생성된 댓글을 반환한다")
-    void createCommentTest_Success() throws Exception {
-        given(commentService.createComment(any(CommentDTO.class))).willReturn(mockCommentDto);
+    @DisplayName("✅ 이미지와 텍스트를 포함한 댓글 작성 테스트")
+    public void createCommentWithImageTest() throws Exception {
+        Long postId = 1L;
+        String loginId = "testUser";
 
-        String jsonContent = objectMapper.writeValueAsString(mockCommentDto);
+        String commentDtoString = objectMapper.writeValueAsString(mockCommentDtoWithImage);
+        MockMultipartFile commentDtoPart = new MockMultipartFile("commentDTO", "", MediaType.APPLICATION_JSON_VALUE, commentDtoString.getBytes(StandardCharsets.UTF_8));
+        MockMultipartFile imageFilePart = new MockMultipartFile("imageFile", "test.jpg", MediaType.IMAGE_JPEG_VALUE, "test image content".getBytes());
 
-        mockMvc.perform(post("/api/comment/1")
-                        .with(csrf()) // CSRF 토큰을 포함
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonContent))
+        given(commentService.createComment(any(CommentDTO.class), eq(loginId), any(MultipartFile.class)))
+                .willReturn(mockCommentDtoWithImage);
+
+        mockMvc.perform(multipart("/api/posts/{postId}/comments", postId)
+                        .file(commentDtoPart)
+                        .file(imageFilePart)
+                        .with(csrf())
+                        .with(user("testUser"))
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andDo(print())
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.commentId").value(1))
-                .andExpect(jsonPath("$.content").value("테스트 댓글 내용"));
+                .andExpect(jsonPath("$.commentId").value(mockCommentDtoWithImage.getCommentId()))
+                .andExpect(jsonPath("$.imageUrl").value(mockCommentDtoWithImage.getImageUrl()));
     }
 
     @Test
-    @WithMockUser(username = "testuser", roles = "USER")
-    @DisplayName("완료된 게시글에 댓글 작성 시 400 Bad Request를 반환한다")
-    void createCommentTest_PostCompleted_Failure() throws Exception {
-        given(commentService.createComment(any(CommentDTO.class)))
-                .willThrow(new IllegalStateException("이미 찾기 완료된 게시글에는 댓글을 작성할 수 없습니다."));
+    @DisplayName("✅ 텍스트만 있는 (이미지 없는) 댓글 작성 테스트")
+    public void createCommentWithoutImageTest() throws Exception {
+        Long postId = 1L;
+        String loginId = "testUser";
 
-        String jsonContent = objectMapper.writeValueAsString(mockCommentDto);
+        String commentDtoString = objectMapper.writeValueAsString(mockCommentDtoWithoutImage);
+        MockMultipartFile commentDtoPart = new MockMultipartFile("commentDTO", "", MediaType.APPLICATION_JSON_VALUE, commentDtoString.getBytes(StandardCharsets.UTF_8));
 
-        mockMvc.perform(post("/api/comment/1")
-                        .with(csrf()) // CSRF 토큰을 포함
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonContent))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("이미 찾기 완료된 게시글에는 댓글을 작성할 수 없습니다."));
+        // 서비스의 createComment 메서드가 imageFile 인자로 null을 받아도 잘 동작하는지 테스트
+        given(commentService.createComment(any(CommentDTO.class), eq(loginId), eq(null)))
+                .willReturn(mockCommentDtoWithoutImage);
+
+        mockMvc.perform(multipart("/api/posts/{postId}/comments", postId)
+                        .file(commentDtoPart) // 이미지 파트는 보내지 않음
+                        .with(csrf())
+                        .with(user("testUser"))
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.commentId").value(mockCommentDtoWithoutImage.getCommentId()))
+                .andExpect(jsonPath("$.imageUrl").isEmpty());
     }
 
-    // --- DAY 2 테스트: 댓글 수정 (인증 필요) ---
     @Test
-    @WithMockUser(username = "testuser", roles = "USER")
-    @DisplayName("댓글 수정 요청 시 200 OK와 함께 수정된 댓글을 반환한다")
-    void updateCommentTest() throws Exception {
-        CommentDTO updatedDto = CommentDTO.builder()
-                .commentId(1L)
-                .postId(1L)
-                .content("수정된 댓글 내용")
-                .build();
+    @DisplayName("이미지 포함 댓글 수정 테스트")
+    public void updateCommentWithImageTest() throws Exception {
+        Long commentId = 1L;
+        String loginId = "testUser";
 
-        given(commentService.updateComment(any(Long.class), any(CommentDTO.class))).willReturn(updatedDto);
+        String commentDtoString = objectMapper.writeValueAsString(mockCommentDtoWithImage);
+        MockMultipartFile commentDtoPart = new MockMultipartFile("commentDTO", "", MediaType.APPLICATION_JSON_VALUE, commentDtoString.getBytes(StandardCharsets.UTF_8));
+        MockMultipartFile imageFilePart = new MockMultipartFile("imageFile", "updated.jpg", MediaType.IMAGE_JPEG_VALUE, "updated image content".getBytes());
 
-        String jsonContent = objectMapper.writeValueAsString(updatedDto);
+        given(commentService.updateComment(eq(commentId), any(CommentDTO.class), eq(loginId), any(MultipartFile.class)))
+                .willReturn(mockCommentDtoWithImage);
 
-        mockMvc.perform(put("/api/comment/1")
-                        .with(csrf()) // CSRF 토큰을 포함
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonContent))
+        mockMvc.perform(multipart(HttpMethod.PUT, "/api/comments/{commentId}", commentId)
+                        .file(commentDtoPart)
+                        .file(imageFilePart)
+                        .with(csrf())
+                        .with(user("testUser"))
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").value("수정된 댓글 내용"));
+                .andExpect(jsonPath("$.content").value(mockCommentDtoWithImage.getContent()));
     }
 
-    // --- DAY 2 테스트: 댓글 삭제 (인증 필요) ---
     @Test
-    @WithMockUser(username = "testuser", roles = "USER")
-    @DisplayName("댓글 삭제 요청 시 204 No Content를 반환한다")
-    void deleteCommentTest() throws Exception {
-        mockMvc.perform(delete("/api/comment/1")
-                        .with(csrf())) // CSRF 토큰을 포함
+    @DisplayName("댓글 삭제 테스트")
+    public void deleteCommentTest() throws Exception {
+        Long commentId = 1L;
+        String loginId = "testUser";
+        doNothing().when(commentService).deleteComment(eq(commentId), eq(loginId));
+
+        mockMvc.perform(delete("/api/comments/{commentId}", commentId)
+                        .with(csrf())
+                        .with(user("testUser")))
+                .andDo(print())
                 .andExpect(status().isNoContent());
     }
 }

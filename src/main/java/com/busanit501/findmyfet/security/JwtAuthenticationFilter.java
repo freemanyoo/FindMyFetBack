@@ -39,7 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .orElseThrow(() -> new RuntimeException("User not found"));
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        user.getUserId(), // Principal: 보통 유저의 고유 ID를 저장
+                        user.getLoginId(), // Principal: 보통 유저의 고유 ID를 저장
                         null,
                         Collections.singleton(new SimpleGrantedAuthority(user.getRole().name()))
                 );

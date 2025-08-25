@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Comment {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long commentId; // 댓글 고유 ID
@@ -33,6 +34,12 @@ public class Comment {
     private LocalDateTime createdAt; // 작성 시간
 
     private LocalDateTime updatedAt; // 수정 시간
+
+    // ✅✅✅ 내용과 이미지 URL을 수정하는 메서드 추가 ✅✅✅
+    public void updateContent(String content, String imageUrl) {
+        this.content = content;
+        this.imageUrl = imageUrl;
+    }
 
     @PrePersist
     public void prePersist() {
