@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 // 작업 순서2
 @Configuration
-@EnableJpaAuditing
 public class RootConfig {
 
     @Bean
