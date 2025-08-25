@@ -1,5 +1,6 @@
 package com.busanit501.findmyfet.security;
 
+
 import com.busanit501.findmyfet.domain.User;
 import com.busanit501.findmyfet.repository.UserRepository;
 import io.jsonwebtoken.Claims;
@@ -62,5 +63,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return bearerToken.substring(7);
         }
         return null;
-    }
+    }}
 
