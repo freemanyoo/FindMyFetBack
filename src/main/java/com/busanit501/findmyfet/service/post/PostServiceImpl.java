@@ -4,10 +4,14 @@ import com.busanit501.findmyfet.domain.Role;
 import com.busanit501.findmyfet.domain.User;
 import com.busanit501.findmyfet.domain.post.Image;
 import com.busanit501.findmyfet.domain.post.Post;
+import com.busanit501.findmyfet.dto.paging.PageRequestDTO;
+import com.busanit501.findmyfet.dto.paging.PageResponseDTO;
 import com.busanit501.findmyfet.dto.post.*;
 import com.busanit501.findmyfet.repository.post.ImageRepository;
 import com.busanit501.findmyfet.repository.post.PostRepository;
 import com.busanit501.findmyfet.repository.user.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -156,18 +160,18 @@ public class PostServiceImpl implements PostService {
 
         // 3. 텍스트 정보 업데이트(JPA 더티 체킹 활용)
             // -> 트랜잭션이 끝날 때 변경된 내용을 감지하여 자동으로 UPDATE 쿼리를 실행
-        post.update(
-                requestDto.getTitle(),
-                requestDto.getContent(),
-                requestDto.getAnimalName(),
-                requestDto.getAnimalAge(),
-                requestDto.getAnimalCategory(),
-                requestDto.getAnimalBreed(),
-                requestDto.getLostTime(),
-                requestDto.getLatitude(),
-                requestDto.getLongitude(),
-                requestDto.getLocation(),
-                requestDto.getPostType()
+        post.update(requestDto
+//                requestDto.getTitle(),
+//                requestDto.getContent(),
+//                requestDto.getAnimalName(),
+//                requestDto.getAnimalAge(),
+//                requestDto.getAnimalCategory(),
+//                requestDto.getAnimalBreed(),
+//                requestDto.getLostTime(),
+//                requestDto.getLatitude(),
+//                requestDto.getLongitude(),
+//                requestDto.getLocation(),
+//                requestDto.getPostType()
         );
 
 //        더티 체킹 (Dirty Checking):
@@ -219,5 +223,28 @@ public class PostServiceImpl implements PostService {
         if (!post.getUser().getUserid().equals(userId) && user.getRole() != Role.Admin) {
             throw new AccessDeniedException("해당 게시글에 대한 수정/삭제 권한이 없습니다.");
         }
+    }
+
+    // 페이징처리
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponseDTO<PostListResponseDto> findAllPosts(PageRequestDTO pageRequestDTO) {
+        // 1. Pageable 객체 생성 (정렬 기준은 'createdAt')
+        Pageable pageable = pageRequestDTO.getPageable("createdAt");
+
+        // 2. QueryDSL을 사용하여 동적 쿼리 및 페이징 실행
+        Page<Post> result = postRepository.search(pageRequestDTO, pageable);
+
+        // 3. Page<Post>를 List<PostListResponseDto>로 변환
+        List<PostListResponseDto> dtoList = result.getContent().stream()
+                .map(PostListResponseDto::new)
+                .collect(Collectors.toList());
+
+        // 4. PageResponseDTO를 생성하여 반환
+        return PageResponseDTO.<PostListResponseDto>withAll()
+                .pageRequestDTO(pageRequestDTO)
+                .dtoList(dtoList)
+                .total((int)result.getTotalElements())
+                .build();
     }
 } // <<<<<<< 클래스 닫는 괄호

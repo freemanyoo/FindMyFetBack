@@ -2,6 +2,7 @@ package com.busanit501.findmyfet.domain.post;
 
 import com.busanit501.findmyfet.domain.BaseEntity;
 import com.busanit501.findmyfet.domain.User;
+import com.busanit501.findmyfet.dto.post.PostUpdateRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -74,8 +75,9 @@ public class Post extends BaseEntity {
     }
 
     // 비즈니스 로직 : 업데이트 (모든 필드를 받도록)
-    public void update(String title, String content, String animalName, int animalAge, String animalCategory,
-                       String animalBreed, LocalDateTime lostTime, double latitude, double longitude, String location, PostType postType) {
+//    public void update(String title, String content, String animalName, int animalAge, String animalCategory,
+//                       String animalBreed, LocalDateTime lostTime, double latitude, double longitude, String location, PostType postType) {
+    public void update(PostUpdateRequestDto dto) {
         this.title = title;
         this.content = content;
         this.animalName = animalName;
