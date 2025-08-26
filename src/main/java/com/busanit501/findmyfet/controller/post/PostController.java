@@ -1,7 +1,7 @@
 package com.busanit501.findmyfet.controller.post;
 
-import com.busanit501.findmyfet.dto.paging.PageRequestDTO;
-import com.busanit501.findmyfet.dto.paging.PageResponseDTO;
+import com.busanit501.findmyfet.dto.paging.PageRequestDto;
+import com.busanit501.findmyfet.dto.paging.PageResponseDto;
 import com.busanit501.findmyfet.dto.post.*; // DTO 한번에 import
 import com.busanit501.findmyfet.service.post.PostService;
 import jakarta.validation.Valid;
@@ -28,8 +28,8 @@ public class PostController {
 //    public ResponseEntity<List<PostListResponseDto>> getPostList() {
 //        List<PostListResponseDto> posts = postService.findAllPosts();
 //        return ResponseEntity.ok(posts);
-    public ResponseEntity<PageResponseDTO<PostListResponseDto>> getPostList(PageRequestDTO pageRequestDTO) {
-        PageResponseDTO<PostListResponseDto> response = postService.findAllPosts(pageRequestDTO);
+    public ResponseEntity<PageResponseDto<PostListResponseDto>> getPostList(PageRequestDto pageRequestDTO) {
+        PageResponseDto<PostListResponseDto> response = postService.findAllPosts(pageRequestDTO);
         return ResponseEntity.ok(response);
     }
 

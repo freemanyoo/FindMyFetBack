@@ -3,7 +3,7 @@ package com.busanit501.findmyfet.repository.post;
 import com.busanit501.findmyfet.domain.post.Post;
 
 import com.busanit501.findmyfet.domain.post.QPost;
-import com.busanit501.findmyfet.dto.paging.PageRequestDTO;
+import com.busanit501.findmyfet.dto.paging.PageRequestDto;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -22,7 +22,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
 
 
     @Override
-    public Page<Post> search(PageRequestDTO pageRequestDTO, Pageable pageable) {
+    public Page<Post> search(PageRequestDto pageRequestDTO, Pageable pageable) {
         QPost post = QPost.post;
         BooleanBuilder booleanBuilder = new BooleanBuilder();
 
@@ -33,18 +33,24 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
         if (StringUtils.hasText(pageRequestDTO.getCategory())) {
             booleanBuilder.and(post.animalCategory.eq(pageRequestDTO.getCategory()));
         }
+
+        // ===================  핵심 변경 사항  ===================
+        // 기존 : booleanBuilder.and(post.user.address.contains(pageRequestDTO.getRegion()));
+        // 변경 : Post 엔티티의 location 필드와 정확히 일치하는 것을 검색합니다.
         if (StringUtils.hasText(pageRequestDTO.getRegion())) {
-            // 'region' 필드는 Post 엔티티에 없으므로, user.address 기준으로 검색하는 예시
-            // 또는 Post 엔티티에 'region' 필드를 추가해야 합니다. 여기서는 user.address로 가정
-            booleanBuilder.and(post.user.address.contains(pageRequestDTO.getRegion()));
+            booleanBuilder.and(post.location.eq(pageRequestDTO.getRegion()));
         }
+        // ==============================================================
+
         if (StringUtils.hasText(pageRequestDTO.getKeyword())) {
             booleanBuilder.and(post.title.contains(pageRequestDTO.getKeyword())
                     .or(post.content.contains(pageRequestDTO.getKeyword())));
         }
 
         // 쿼리 생성
+        // N+1 문제 방지를 위해 fetchJoin() 추가
         JPAQuery<Post> query = queryFactory.selectFrom(post)
+                .leftJoin(post.user).fetchJoin() // 작성자 정보를 함께 조회
                 .where(booleanBuilder)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -52,7 +58,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
 
         List<Post> content = query.fetch();
 
-        // 전체 카운트 쿼리 (성능을 위해 분리)
+        // 전체 카운트 쿼리
         JPAQuery<Long> countQuery = queryFactory.select(post.count())
                 .from(post)
                 .where(booleanBuilder);
@@ -62,3 +68,9 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
         return new PageImpl<>(content, pageable, total);
     }
 }
+//post.user.address.contains(...)를 post.location.eq(...)로 변경하여,
+// 사용자가 게시글을 작성할 때 직접 입력한 location 값("서울시", "부산시" 등)과 검색어가
+// 정확히 일치하는 게시글만 찾도록 수정했습니다.
+// 추가로, 게시글 목록 조회 시 각 게시글마다 작성자 정보를 가져오기 위해
+// 발생하는 N+1 쿼리 문제를 예방하고자 .leftJoin(post.user).fetchJoin() 코드를
+// 추가하여 성능을 최적화했습니다.

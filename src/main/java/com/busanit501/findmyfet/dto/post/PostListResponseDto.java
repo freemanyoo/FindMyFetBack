@@ -9,10 +9,9 @@ public class PostListResponseDto {
     private Long postId;
     private String title;
     private String animalName;
-    private String thumbnailUrl; // 일단은 null 또는 빈 값으로
+    private String thumbnailUrl; // 디폴트값 null;
     private String postType;
     private String status;
-//    private LocalDateTime createdAt;
 
     private AuthorDto author; // AuthorDto 필드 추가
 
@@ -25,7 +24,12 @@ public class PostListResponseDto {
         this.status = entity.getStatus().name();
 //        this.createdAt = entity.getCreatedAt();
         if (entity.getUser() != null) {
-            this.author = new AuthorDto(entity.getUser()); // getMember() -> getUser()
+            this.author = new AuthorDto(entity.getUser());
+        }
+        // 게시글에 이미지가 존재하면, 첫 번째 이미지의 URL을 thumbnailUrl로 설정합니다.
+        // 이미지가 없으면 기존처럼 null로 유지
+        if (entity.getImages() != null && !entity.getImages().isEmpty()) {
+            this.thumbnailUrl = entity.getImages().get(0).getImageUrl();
         }
     }
 }

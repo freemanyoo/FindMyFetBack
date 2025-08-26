@@ -40,7 +40,7 @@ public class Post extends BaseEntity {
     private double latitude;  // 위도
     private double longitude; // 경도
 
-    private String location; // <<<<<<<<<<<< 잃어버린 장소 추가 250825
+    private String location; // <<<<<<<<<<<< 잃어버린 장소/발견한장소 추가 250825
 
     @Enumerated(EnumType.STRING) // "MISSING", "SHELTER" 같은 문자열로 저장
     @Column(nullable = false)
@@ -78,17 +78,17 @@ public class Post extends BaseEntity {
 //    public void update(String title, String content, String animalName, int animalAge, String animalCategory,
 //                       String animalBreed, LocalDateTime lostTime, double latitude, double longitude, String location, PostType postType) {
     public void update(PostUpdateRequestDto dto) {
-        this.title = title;
-        this.content = content;
-        this.animalName = animalName;
-        this.animalAge = animalAge;
-        this.animalCategory = animalCategory;
-        this.animalBreed = animalBreed;
-        this.lostTime = lostTime;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.location = location; // 잃어버린장소 추가 250825
-        this.postType = postType;
+        this.title = dto.getTitle();
+        this.content = dto.getContent();
+        this.animalName = dto.getAnimalName();
+        this.animalAge = dto.getAnimalAge();
+        this.animalCategory = dto.getAnimalCategory();
+        this.animalBreed = dto.getAnimalBreed();
+        this.lostTime = dto.getLostTime();
+        this.latitude = dto.getLatitude();
+        this.longitude = dto.getLongitude();
+        this.location = dto.getLocation();
+        this.postType = dto.getPostType();
     }
 
     //Post 엔티티 스스로 자신의 상태를 바꾸도록 메서드

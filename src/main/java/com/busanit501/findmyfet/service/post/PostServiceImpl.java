@@ -4,8 +4,8 @@ import com.busanit501.findmyfet.domain.Role;
 import com.busanit501.findmyfet.domain.User;
 import com.busanit501.findmyfet.domain.post.Image;
 import com.busanit501.findmyfet.domain.post.Post;
-import com.busanit501.findmyfet.dto.paging.PageRequestDTO;
-import com.busanit501.findmyfet.dto.paging.PageResponseDTO;
+import com.busanit501.findmyfet.dto.paging.PageRequestDto;
+import com.busanit501.findmyfet.dto.paging.PageResponseDto;
 import com.busanit501.findmyfet.dto.post.*;
 import com.busanit501.findmyfet.repository.post.ImageRepository;
 import com.busanit501.findmyfet.repository.post.PostRepository;
@@ -35,14 +35,37 @@ public class PostServiceImpl implements PostService {
     private final FileUploadService fileUploadService;
     private final UserRepository  userRepository;
 
-    // 전체 게시글리스트 조회기능
+    // 페이징처리 + 게시판 조회
     @Override
-    @Transactional(readOnly = true) // 조회 기능이므로 readOnly=true로 성능 최적화
-    public List<PostListResponseDto> findAllPosts() {
-        return postRepository.findAll().stream() // DB에서 모든 Post를 가져와서
-                .map(PostListResponseDto::new)      // DTO로 변환하고
-                .collect(Collectors.toList());      // List로 만든다.
+    @Transactional(readOnly = true)
+    public PageResponseDto<PostListResponseDto> findAllPosts(PageRequestDto pageRequestDTO) {
+        // 1. Pageable 객체 생성 (정렬 기준은 'createdAt')
+        Pageable pageable = pageRequestDTO.getPageable("createdAt");
+
+        // 2. QueryDSL을 사용하여 동적 쿼리 및 페이징 실행
+        Page<Post> result = postRepository.search(pageRequestDTO, pageable);
+
+        // 3. Page<Post>를 List<PostListResponseDto>로 변환
+        List<PostListResponseDto> dtoList = result.getContent().stream()
+                .map(PostListResponseDto::new)
+                .collect(Collectors.toList());
+
+        // 4. PageResponseDTO를 생성하여 반환
+        return PageResponseDto.<PostListResponseDto>withAll()
+                .pageRequestDTO(pageRequestDTO)
+                .dtoList(dtoList)
+                .total((int)result.getTotalElements())
+                .build();
     }
+
+    // 전체 게시글리스트 조회기능
+//    @Override
+//    @Transactional(readOnly = true) // 조회 기능이므로 readOnly=true로 성능 최적화
+//    public List<PostListResponseDto> findAllPosts() {
+//        return postRepository.findAll().stream() // DB에서 모든 Post를 가져와서
+//                .map(PostListResponseDto::new)      // DTO로 변환하고
+//                .collect(Collectors.toList());      // List로 만든다.
+//    }
 
     // 게시글 등록기능
     @Override
@@ -160,19 +183,7 @@ public class PostServiceImpl implements PostService {
 
         // 3. 텍스트 정보 업데이트(JPA 더티 체킹 활용)
             // -> 트랜잭션이 끝날 때 변경된 내용을 감지하여 자동으로 UPDATE 쿼리를 실행
-        post.update(requestDto
-//                requestDto.getTitle(),
-//                requestDto.getContent(),
-//                requestDto.getAnimalName(),
-//                requestDto.getAnimalAge(),
-//                requestDto.getAnimalCategory(),
-//                requestDto.getAnimalBreed(),
-//                requestDto.getLostTime(),
-//                requestDto.getLatitude(),
-//                requestDto.getLongitude(),
-//                requestDto.getLocation(),
-//                requestDto.getPostType()
-        );
+        post.update(requestDto);
 
 //        더티 체킹 (Dirty Checking):
 //        @Transactional 환경에서 postRepository.findById()로 조회된 post 엔티티는 JPA의 영속성 컨텍스트에 의해 관리됩니다.
@@ -224,27 +235,4 @@ public class PostServiceImpl implements PostService {
             throw new AccessDeniedException("해당 게시글에 대한 수정/삭제 권한이 없습니다.");
         }
     }
-
-    // 페이징처리
-    @Override
-    @Transactional(readOnly = true)
-    public PageResponseDTO<PostListResponseDto> findAllPosts(PageRequestDTO pageRequestDTO) {
-        // 1. Pageable 객체 생성 (정렬 기준은 'createdAt')
-        Pageable pageable = pageRequestDTO.getPageable("createdAt");
-
-        // 2. QueryDSL을 사용하여 동적 쿼리 및 페이징 실행
-        Page<Post> result = postRepository.search(pageRequestDTO, pageable);
-
-        // 3. Page<Post>를 List<PostListResponseDto>로 변환
-        List<PostListResponseDto> dtoList = result.getContent().stream()
-                .map(PostListResponseDto::new)
-                .collect(Collectors.toList());
-
-        // 4. PageResponseDTO를 생성하여 반환
-        return PageResponseDTO.<PostListResponseDto>withAll()
-                .pageRequestDTO(pageRequestDTO)
-                .dtoList(dtoList)
-                .total((int)result.getTotalElements())
-                .build();
-    }
-} // <<<<<<< 클래스 닫는 괄호
+}

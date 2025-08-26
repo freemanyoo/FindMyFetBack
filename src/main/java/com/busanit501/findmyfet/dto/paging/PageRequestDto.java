@@ -17,7 +17,7 @@ import org.springframework.data.domain.Sort;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PageRequestDTO {
+public class PageRequestDto {
 
     @Builder.Default
     @Min(value = 1)

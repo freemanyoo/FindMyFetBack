@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 @ToString
 
-public class PageResponseDTO<E> {
+public class PageResponseDto<E> {
 
     private int page;
     private int size;
@@ -24,7 +24,7 @@ public class PageResponseDTO<E> {
 
     // 빌더 패턴을 이용한, 생성자 구성,
     @Builder(builderMethodName = "withAll")
-    public PageResponseDTO(PageRequestDTO pageRequestDTO, List<E> dtoList, int total) {
+    public PageResponseDto(PageRequestDto pageRequestDTO, List<E> dtoList, int total) {
         this.page = pageRequestDTO.getPage();
         this.size = pageRequestDTO.getSize();
 

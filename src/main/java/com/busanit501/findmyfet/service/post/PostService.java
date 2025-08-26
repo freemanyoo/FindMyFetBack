@@ -1,8 +1,8 @@
 package com.busanit501.findmyfet.service.post;
 
 
-import com.busanit501.findmyfet.dto.paging.PageRequestDTO;
-import com.busanit501.findmyfet.dto.paging.PageResponseDTO;
+import com.busanit501.findmyfet.dto.paging.PageRequestDto;
+import com.busanit501.findmyfet.dto.paging.PageResponseDto;
 import com.busanit501.findmyfet.dto.post.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -11,10 +11,10 @@ import java.util.List;
 public interface PostService {
 
     //페이징처리 추가
-    PageResponseDTO<PostListResponseDto> findAllPosts(PageRequestDTO pageRequestDTO);
+    PageResponseDto<PostListResponseDto> findAllPosts(PageRequestDto pageRequestDTO);
 
-    // 게시판 전체조회
-    List<PostListResponseDto> findAllPosts();
+    // 게시판 전체조회 -> 페이징 처리 + 전체조회로 바꿈.
+//    List<PostListResponseDto> findAllPosts();
 
     // 게시글 상세 조회
     PostDetailResponseDto findPostById(Long postId);
