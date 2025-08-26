@@ -14,13 +14,13 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 @EntityListeners(value = {AuditingEntityListener.class})
 @Getter
-public abstract class BaseEntity {
+abstract class BaseEntity {
 
-    @CreatedDate // postRepository.save()가 호출되어 새로운 데이터가 DB에 처음 저장되는 시점에 Spring Data JPA가 현재 시간을 자동으로
+    @CreatedDate
     @Column(name = "reg_date", updatable = false)
-    private LocalDateTime createdAt; //변수명 변경_240824
+    private LocalDateTime createdAt;
 
     @LastModifiedDate
     @Column(name = "mod_date")
-    private LocalDateTime updatedAt; //변수명 변경_240824
+    private LocalDateTime updatedAt;
 }
