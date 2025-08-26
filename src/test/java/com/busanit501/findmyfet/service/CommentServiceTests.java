@@ -5,7 +5,8 @@ import com.busanit501.findmyfet.domain.Post;
 import com.busanit501.findmyfet.domain.User;
 import com.busanit501.findmyfet.dto.CommentDTO;
 import com.busanit501.findmyfet.repository.CommentRepository;
-import com.busanit501.findmyfet.repository.PostRepository;
+import com.busanit501.findmyfet.repository.post.PostRepository;
+import com.busanit501.findmyfet.domain.post.Status;
 import com.busanit501.findmyfet.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,15 +40,16 @@ class CommentServiceTests {
     private CommentService commentService;
 
     private User mockUser;
-    private Post mockPost;
+    private com.busanit501.findmyfet.domain.post.Post mockPost;
     private CommentDTO commentDTO;
 
     @BeforeEach
     void setUp() {
         mockUser = User.builder().loginId("testUser").userId(1L).build();
-        mockPost = new Post();
-        mockPost.setPostId(1L);
-        mockPost.setCompleted(false);
+        mockPost = com.busanit501.findmyfet.domain.post.Post.builder()
+                .id(1L)
+                .status(Status.ACTIVE)
+                .build();
 
         commentDTO = CommentDTO.builder()
                 .postId(1L)
@@ -72,7 +74,7 @@ class CommentServiceTests {
     @Test
     @DisplayName("실패 테스트: 완료된 게시글에 댓글 작성 시 예외 발생")
     void createComment_Fail_WhenPostIsCompleted() {
-        mockPost.setCompleted(true);
+        mockPost = com.busanit501.findmyfet.domain.post.Post.builder().id(mockPost.getId()).status(Status.COMPLETED).build();
 
         given(postRepository.findById(anyLong())).willReturn(Optional.of(mockPost));
 

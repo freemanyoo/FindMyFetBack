@@ -9,7 +9,7 @@ import com.busanit501.findmyfet.dto.paging.PageResponseDto;
 import com.busanit501.findmyfet.dto.post.*;
 import com.busanit501.findmyfet.repository.post.ImageRepository;
 import com.busanit501.findmyfet.repository.post.PostRepository;
-import com.busanit501.findmyfet.repository.user.UserRepository;
+import com.busanit501.findmyfet.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;

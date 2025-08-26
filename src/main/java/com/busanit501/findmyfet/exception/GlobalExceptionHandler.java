@@ -5,19 +5,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 // 모든 컨트롤러에서 발생하는 예외를 잡아서 처리해주는 클래스
-@RestController
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     // 특정 예외(IllegalArgumentException)를 잡아서 하나의 메소드에서 공통 처리
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
         // 'NOT_FOUND' 코드와 예외 메시지를 담은 ErrorResponse 객체 생성
-        ErrorResponse response = new ErrorResponse("NOT_FOUND", ex.getMessage());
-        // 404 (Not Found) 상태 코드와 함께 ErrorResponse를 클라이언트에게 반환
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        ErrorResponse response = new ErrorResponse("BAD_REQUEST", ex.getMessage());
+        // 400 (Bad Request) 상태 코드와 함께 ErrorResponse를 클라이언트에게 반환
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     // 권한 관련 예외 처리
