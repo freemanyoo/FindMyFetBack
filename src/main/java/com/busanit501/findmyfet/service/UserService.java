@@ -27,6 +27,9 @@ public class UserService {
         if (userRepository.findByLoginId(requestDTO.getLoginId()).isPresent()) {
             throw new IllegalArgumentException("이미 사용중인 아이디입니다.");
         }
+        if (userRepository.findByEmail(requestDTO.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("이미 사용중인 이메일입니다.");
+        }
         User user = User.builder()
                 .loginId(requestDTO.getLoginId())
                 .password(passwordEncoder.encode(requestDTO.getPassword()))
