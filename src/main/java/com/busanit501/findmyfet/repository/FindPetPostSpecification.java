@@ -1,5 +1,6 @@
 package com.busanit501.findmyfet.repository;
 
+import com.busanit501.findmyfet.domain.post.Post;
 import com.busanit501.findmyfet.dto.post.FindPetSearchCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -7,9 +8,9 @@ import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FindPetPostSpecification {
+public class PostSpecification {
 
-    public static Specification<FindPetPost> withCriteria(FindPetSearchCriteria criteria) {
+    public static Specification<Post> withCriteria(FindPetSearchCriteria criteria) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -21,74 +22,81 @@ public class FindPetPostSpecification {
                 ));
             }
 
-            // 작성자 검색 (부분 일치)
-            if (criteria.hasAuthor()) {
+            // 동물 이름 검색 (부분 일치)
+            if (criteria.hasAnimalName()) {
                 predicates.add(criteriaBuilder.like(
-                        criteriaBuilder.lower(root.get("author")),
-                        "%" + criteria.getAuthor().toLowerCase() + "%"
+                        criteriaBuilder.lower(root.get("animalName")),
+                        "%" + criteria.getAnimalName().toLowerCase() + "%"
                 ));
             }
 
-            // 분실 날짜 범위
-            if (criteria.getLostDateFrom() != null) {
+            // 분실 시간 범위
+            if (criteria.getLostTimeFrom() != null) {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(
-                        root.get("lostDate"),
-                        criteria.getLostDateFrom()
+                        root.get("lostTime"),
+                        criteria.getLostTimeFrom()
                 ));
             }
 
-            if (criteria.getLostDateTo() != null) {
+            if (criteria.getLostTimeTo() != null) {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(
-                        root.get("lostDate"),
-                        criteria.getLostDateTo()
+                        root.get("lostTime"),
+                        criteria.getLostTimeTo()
                 ));
             }
 
-            // 시·도 필터
-            if (criteria.hasCityProvince()) {
-                predicates.add(criteriaBuilder.equal(
-                        root.get("cityProvince"),
-                        criteria.getCityProvince()
+            // 지역 필터 (부분 일치)
+            if (criteria.hasLocation()) {
+                predicates.add(criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("location")),
+                        "%" + criteria.getLocation().toLowerCase() + "%"
                 ));
             }
 
-            // 군/구 필터
-            if (criteria.hasDistrict()) {
+            // 동물 카테고리 필터
+            if (criteria.hasAnimalCategory()) {
                 predicates.add(criteriaBuilder.equal(
-                        root.get("district"),
-                        criteria.getDistrict()
-                ));
-            }
-
-            // 동물 종류 필터
-            if (criteria.getAnimalType() != null) {
-                predicates.add(criteriaBuilder.equal(
-                        root.get("animalType"),
-                        criteria.getAnimalType()
+                        root.get("animalCategory"),
+                        criteria.getAnimalCategory()
                 ));
             }
 
             // 품종 필터
-            if (criteria.hasBreed()) {
+            if (criteria.hasAnimalBreed()) {
                 predicates.add(criteriaBuilder.equal(
-                        root.get("breed"),
-                        criteria.getBreed()
+                        root.get("animalBreed"),
+                        criteria.getAnimalBreed()
                 ));
             }
 
-            // 성별 필터
-            if (criteria.getGender() != null) {
+            // 게시글 타입 필터
+            if (criteria.getPostType() != null) {
                 predicates.add(criteriaBuilder.equal(
-                        root.get("gender"),
-                        criteria.getGender()
+                        root.get("postType"),
+                        criteria.getPostType()
                 ));
             }
 
-            // 검색 완료 토글
-            if (criteria.getIsFound() != null) {
+            // 상태 필터
+            if (criteria.getStatus() != null) {
                 predicates.add(criteriaBuilder.equal(
-                        root.get("isFound"),
-                        criteria.getIsFound()
+                        root.get("status"),
+                        criteria.getStatus()
+                ));
+            }
+
+            // 동물 나이 범위
+            if (criteria.getAnimalAgeFrom() != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(
+                        root.get("animalAge"),
+                        criteria.getAnimalAgeFrom()
+                ));
+            }
+
+            if (criteria.getAnimalAgeTo() != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(
+                        root.get("animalAge"),
+                        criteria.getAnimalAgeTo()
                 ));
             }
 

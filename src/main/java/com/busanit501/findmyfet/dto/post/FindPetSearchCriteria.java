@@ -1,5 +1,6 @@
 package com.busanit501.findmyfet.dto.post;
 
+import com.busanit501.findmyfet.domain.post.Post;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Max;
@@ -8,7 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -18,24 +19,24 @@ public class FindPetSearchCriteria {
 
     // 검색 조건
     private String title;        // 제목 검색 (부분 일치)
-    private String author;       // 작성자 검색 (부분 일치)
+    private String animalName;   // 동물 이름 검색 (부분 일치)
 
     // 필터 조건
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate lostDateFrom;  // 분실 날짜 시작
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime lostTimeFrom;  // 분실 시간 시작
 
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate lostDateTo;    // 분실 날짜 종료
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime lostTimeTo;    // 분실 시간 종료
 
-    private String cityProvince;     // 시·도
-    private String district;         // 군/구
+    private String location;         // 분실/발견 장소
+    private String animalCategory;   // 동물 카테고리 (개, 고양이 등)
+    private String animalBreed;      // 품종
+    private Post.PostType postType;  // 게시글 타입 (MISSING, SHELTER 등)
+    private Post.Status status;      // 상태 (ACTIVE, COMPLETED)
 
-    private FindPetPost.AnimalType animalType; // 동물 종류
-    private String breed;            // 품종
-    private FindPetPost.Gender gender; // 성별
-
-    // 토글 옵션
-    private Boolean isFound;         // 검색 완료 여부 (null이면 전체, true면 완료, false면 미완료)
+    // 동물 나이 범위
+    private Integer animalAgeFrom;   // 최소 나이
+    private Integer animalAgeTo;     // 최대 나이
 
     // 페이징 및 검증 추가
     @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다")
@@ -58,30 +59,42 @@ public class FindPetSearchCriteria {
         return title != null && !title.trim().isEmpty();
     }
 
-    public boolean hasAuthor() {
-        return author != null && !author.trim().isEmpty();
+    public boolean hasAnimalName() {
+        return animalName != null && !animalName.trim().isEmpty();
     }
 
-    public boolean hasDateRange() {
-        return lostDateFrom != null || lostDateTo != null;
+    public boolean hasDateTimeRange() {
+        return lostTimeFrom != null || lostTimeTo != null;
     }
 
-    public boolean hasCityProvince() {
-        return cityProvince != null && !cityProvince.trim().isEmpty();
+    public boolean hasLocation() {
+        return location != null && !location.trim().isEmpty();
     }
 
-    public boolean hasDistrict() {
-        return district != null && !district.trim().isEmpty();
+    public boolean hasAnimalCategory() {
+        return animalCategory != null && !animalCategory.trim().isEmpty();
     }
 
-    public boolean hasBreed() {
-        return breed != null && !breed.trim().isEmpty();
+    public boolean hasAnimalBreed() {
+        return animalBreed != null && !animalBreed.trim().isEmpty();
+    }
+
+    public boolean hasAgeRange() {
+        return animalAgeFrom != null || animalAgeTo != null;
     }
 
     // 날짜 범위 유효성 검증
-    public boolean isDateRangeValid() {
-        if (lostDateFrom != null && lostDateTo != null) {
-            return !lostDateFrom.isAfter(lostDateTo);
+    public boolean isDateTimeRangeValid() {
+        if (lostTimeFrom != null && lostTimeTo != null) {
+            return !lostTimeFrom.isAfter(lostTimeTo);
+        }
+        return true;
+    }
+
+    // 나이 범위 유효성 검증
+    public boolean isAgeRangeValid() {
+        if (animalAgeFrom != null && animalAgeTo != null) {
+            return animalAgeFrom <= animalAgeTo;
         }
         return true;
     }
