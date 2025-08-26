@@ -35,7 +35,7 @@ public class SecurityConfig {
     public WebSecurityCustomizer webSecurityCustomizer() {
         // 보안 필터 체인을 완전히 무시할 경로 설정
         return (web) -> web.ignoring()
-                .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**");
+                .requestMatchers("/auth/**", "/swagger-ui/**", "/v3/api-docs/**");
     }
 
     @Bean
@@ -57,7 +57,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 적용
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .anyRequest().authenticated() // 위에서 무시한 경로 외 모든 요청은 인증 필요
+                        .requestMatchers("/auth/**").permitAll() // /auth/** 경로는 인증 없이 허용
+                        .anyRequest().authenticated() // 나머지 모든 요청은 인증 필요
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
