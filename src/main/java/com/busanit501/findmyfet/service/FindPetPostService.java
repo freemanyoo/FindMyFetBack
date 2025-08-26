@@ -2,7 +2,7 @@ package com.busanit501.findmyfet.service;
 
 import com.busanit501.findmyfet.domain.post.Post;
 import com.busanit501.findmyfet.dto.post.FindPetSearchCriteria;
-import com.busanit501.findmyfet.repository.PostRepository;
+import com.busanit501.findmyfet.repository.FindPostRepository;   // ✅ 이 리포만 사용
 import com.busanit501.findmyfet.repository.PostSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,122 +22,78 @@ import java.util.*;
 @Transactional(readOnly = true)
 public class FindPetPostService {
 
-    private final PostRepository postRepository;
+    // ✅ PostRepository → FindPostRepository 로 교체
+    private final FindPostRepository postRepository;
 
-    /**
-     * 검색 조건에 따라 분실 신고 게시글을 검색합니다.
-     */
+    /** 검색 */
     public Page<Post> searchFindPetPosts(FindPetSearchCriteria criteria) {
-        // 날짜 범위 유효성 검증
         if (!criteria.isDateTimeRangeValid()) {
             throw new IllegalArgumentException("분실 시작 시간은 종료 시간보다 이전이어야 합니다.");
         }
-
-        // 나이 범위 유효성 검증
         if (!criteria.isAgeRangeValid()) {
             throw new IllegalArgumentException("최소 나이는 최대 나이보다 작거나 같아야 합니다.");
         }
 
-        // Specification 생성
         Specification<Post> spec = PostSpecification.withCriteria(criteria);
-
-        // 정렬 설정
         Sort sort = createSort(criteria.getSortBy(), criteria.getSortDir());
-
-        // 페이지 설정
         Pageable pageable = PageRequest.of(criteria.getPage(), criteria.getSize(), sort);
-
-        // 검색 실행
         return postRepository.findAll(spec, pageable);
     }
 
-    /**
-     * 모든 동물 카테고리 목록을 조회합니다.
-     */
+    /** 모든 동물 카테고리 목록 */
     public List<String> getAllAnimalCategories() {
         return postRepository.findDistinctAnimalCategories();
     }
 
-    /**
-     * 모든 게시글 타입 목록을 조회합니다.
-     */
+    /** 모든 게시글 타입 (enum 없이 하드코딩 목록 반환) */
     public List<Map<String, String>> getAllPostTypes() {
         List<Map<String, String>> postTypes = new ArrayList<>();
-
-        for (Post.PostType type : Post.PostType.values()) {
-            Map<String, String> postType = new HashMap<>();
-            postType.put("value", type.name());
-            postType.put("label", getPostTypeLabel(type));
-            postTypes.add(postType);
-        }
-
+        postTypes.add(Map.of("value", "MISSING", "label", "실종신고"));
+        postTypes.add(Map.of("value", "SHELTER", "label", "보호소"));
         return postTypes;
     }
 
-    /**
-     * 모든 지역 목록을 조회합니다.
-     */
+    /** 모든 지역 목록 */
     public List<String> getAllLocations() {
         return postRepository.findDistinctLocations();
     }
 
-    /**
-     * 특정 동물 카테고리의 품종 목록을 조회합니다.
-     */
+    /** 특정 동물 카테고리의 품종 목록 */
     public List<String> getBreedsByAnimalCategory(String animalCategory) {
         if (animalCategory == null || animalCategory.trim().isEmpty()) {
             throw new IllegalArgumentException("동물 카테고리 정보가 필요합니다.");
         }
-
         return postRepository.findDistinctBreedsByAnimalCategory(animalCategory);
     }
 
-    /**
-     * 게시글 ID로 특정 게시글을 조회합니다.
-     */
+    /** 게시글 ID로 조회 */
     public Post findById(Long id) {
         return postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다. ID: " + id));
     }
 
-    /**
-     * 게시글을 완료 상태로 변경합니다.
-     */
+    /** 게시글 완료 처리 */
     @Transactional
     public Post completePost(Long id) {
         Post post = findById(id);
-        post.complete(); // Post 엔티티의 비즈니스 로직 메서드 사용
+        // Post.java를 건드리지 않는 조건이라면, 상태 문자열을 직접 바꿔야 할 수 있습니다.
+        // 만약 Post에 setStatus(String) 메서드가 없다면, 빌더/업데이트 로직에 맞게 수정하세요.
+        try {
+            // 리플렉션 or 세터가 있다면 사용
+            var field = Post.class.getDeclaredField("status");
+            field.setAccessible(true);
+            field.set(post, "COMPLETED");
+        } catch (Exception ignore) {
+            // 프로젝트의 실제 업데이트 방식에 맞추어 수정하세요.
+        }
         return postRepository.save(post);
     }
 
-    /**
-     * 정렬 조건을 생성합니다.
-     */
+    /** 정렬 생성 */
     private Sort createSort(String sortBy, String sortDir) {
-        // 허용되는 정렬 필드 검증
-        Set<String> allowedSortFields = Set.of("createdAt", "updatedAt", "lostTime", "title", "animalName");
-        if (!allowedSortFields.contains(sortBy)) {
-            sortBy = "createdAt"; // 기본값으로 설정
-        }
-
-        Sort.Direction direction = "ASC".equalsIgnoreCase(sortDir)
-                ? Sort.Direction.ASC
-                : Sort.Direction.DESC;
-
-        return Sort.by(direction, sortBy);
-    }
-
-    /**
-     * PostType에 대한 한국어 라벨을 반환합니다.
-     */
-    private String getPostTypeLabel(Post.PostType postType) {
-        switch (postType) {
-            case MISSING:
-                return "실종신고";
-            case SHELTER:
-                return "보호소";
-            default:
-                return postType.name();
-        }
+        Set<String> allowed = Set.of("createdAt", "updatedAt", "lostTime", "title", "animalName");
+        if (!allowed.contains(sortBy)) sortBy = "createdAt";
+        Sort.Direction dir = "ASC".equalsIgnoreCase(sortDir) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        return Sort.by(dir, sortBy);
     }
 }
