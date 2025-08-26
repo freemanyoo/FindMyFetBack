@@ -117,7 +117,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public List<MyPostResponseDto> findMyPosts(Long userId) {
-        return postRepository.findByUser_UseridOrderByCreatedAtDesc(userId)
+        return postRepository.findByUser_UserIdOrderByCreatedAtDesc(userId)
                 .stream()
                 .map(MyPostResponseDto::new)
                 .collect(Collectors.toList());

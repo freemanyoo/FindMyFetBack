@@ -1,7 +1,7 @@
 package com.busanit501.findmyfet.service;
 
 import com.busanit501.findmyfet.domain.Comment;
-import com.busanit501.findmyfet.domain.Post;
+
 import com.busanit501.findmyfet.domain.User;
 import com.busanit501.findmyfet.dto.CommentDTO;
 import com.busanit501.findmyfet.repository.CommentRepository;

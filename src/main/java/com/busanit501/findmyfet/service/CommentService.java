@@ -109,7 +109,7 @@ public class CommentService {
     }
 
     public List<CommentDTO> getCommentsByPostId(Long postId) {
-        List<Comment> comments = commentRepository.findByPostPostId(postId);
+        List<Comment> comments = commentRepository.findByPost_Id(postId);
         return comments.stream()
                 .map(this::entityToDto)
                 .collect(Collectors.toList());
