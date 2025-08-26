@@ -1,11 +1,12 @@
 package com.busanit501.findmyfet.service;
 
 import com.busanit501.findmyfet.domain.Comment;
-import com.busanit501.findmyfet.domain.Post;
+import com.busanit501.findmyfet.domain.post.Post;
+import com.busanit501.findmyfet.domain.post.Status;
 import com.busanit501.findmyfet.domain.User;
 import com.busanit501.findmyfet.dto.CommentDTO;
 import com.busanit501.findmyfet.repository.CommentRepository;
-import com.busanit501.findmyfet.repository.PostRepository;
+import com.busanit501.findmyfet.repository.post.PostRepository;
 import com.busanit501.findmyfet.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -42,7 +43,7 @@ public class CommentService {
         Post post = postRepository.findById(commentDTO.getPostId())
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
-        if (post.isCompleted()) {
+        if (post.getStatus() == Status.COMPLETED) {
             throw new IllegalStateException("이미 찾기 완료된 게시글에는 댓글을 작성할 수 없습니다.");
         }
 
@@ -108,7 +109,7 @@ public class CommentService {
     }
 
     public List<CommentDTO> getCommentsByPostId(Long postId) {
-        List<Comment> comments = commentRepository.findByPostPostId(postId);
+        List<Comment> comments = commentRepository.findByPost_Id(postId);
         return comments.stream()
                 .map(this::entityToDto)
                 .collect(Collectors.toList());
@@ -151,7 +152,7 @@ public class CommentService {
     private CommentDTO entityToDto(Comment comment) {
         return CommentDTO.builder()
                 .commentId(comment.getCommentId())
-                .postId(comment.getPost().getPostId())
+                .postId(comment.getPost().getId())
                 .userId(comment.getUser().getUserId())
                 .content(comment.getContent())
                 .imageUrl(comment.getImageUrl())
