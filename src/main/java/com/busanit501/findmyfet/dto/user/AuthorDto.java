@@ -9,7 +9,7 @@ public class AuthorDto {
     private String name;
 
     public AuthorDto(User user) {
-        this.userId = user.getUserid();
+        this.userId = user.getUserId();
         this.name = user.getName();
     }
 }

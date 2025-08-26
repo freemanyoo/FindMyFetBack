@@ -231,7 +231,7 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다. id=" + userId));
 
         // 현재 로그인한 사용자가 게시글 작성자도 아니고, 관리자도 아니면 예외 발생
-        if (!post.getUser().getUserid().equals(userId) && user.getRole() != Role.Admin) {
+        if (!post.getUser().getUserId().equals(userId) && user.getRole() != Role.ADMIN) {
             throw new AccessDeniedException("해당 게시글에 대한 수정/삭제 권한이 없습니다.");
         }
     }
