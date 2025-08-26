@@ -35,6 +35,8 @@ public class Post extends BaseEntity {
     private String animalCategory; // 예시: "개", "고양이" 등
     private String animalBreed; // 품종
 
+//    private String gender;
+
     private LocalDateTime lostTime; // 실종 시간
 
     private double latitude;  // 위도
