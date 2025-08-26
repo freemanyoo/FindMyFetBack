@@ -1,7 +1,6 @@
 package com.busanit501.findmyfet.repository;
 
-import com.busanit501.findmyfet.dto.FindPetSearchCriteria;
-import com.busanit501.findmyfet.domain.FindPetPost;
+import com.busanit501.findmyfet.dto.post.FindPetSearchCriteria;
 import org.springframework.data.jpa.domain.Specification;
 
 import jakarta.persistence.criteria.Predicate;

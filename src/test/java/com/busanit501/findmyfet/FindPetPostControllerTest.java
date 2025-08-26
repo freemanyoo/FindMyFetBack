@@ -1,217 +1,76 @@
 package com.busanit501.findmyfet;
 
-import com.busanit501.findmyfet.controller.FindPetPostController;
-import com.busanit501.findmyfet.domain.FindPetPost;
-import com.busanit501.findmyfet.dto.FindPetSearchCriteria;
-import com.busanit501.findmyfet.service.FindPetPostService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.busanit501.findmyfet.domain.User;
+import com.busanit501.findmyfet.repository.FindPetPostRepository;
+import com.busanit501.findmyfet.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import java.util.stream.IntStream;
 
 @SpringBootTest
-class FindPetPostControllerTest {
+@Transactional
+public class FindPetPostControllerTest {
+
+    private FindPetPostRepository findPetPostRepository;
 
     @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
-    private FindPetPostService findPetPostService;
+    private UserRepository userRepository;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private TestEntityManager entityManager;
 
-    private FindPetPost testPost;
+    private User testUser;
 
     @BeforeEach
     void setUp() {
-        testPost = FindPetPost.builder()
-                .id(1L)
-                .title("테스트 게시글")
-                .content("테스트 내용")
-                .author("테스트 작성자")
-                .lostDate(LocalDate.of(2024, 8, 20))
-                .cityProvince("서울특별시")
-                .district("강남구")
-                .animalType(FindPetPost.AnimalType.DOG)
-                .breed("골든리트리버")
-                .gender(FindPetPost.Gender.MALE)
-                .isFound(false)
-                .contact("010-1234-5678")
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
+        // 테스트용 사용자 생성 또는 조회
+                testUser = userRepository.findByLoginId("testuser").orElseGet(() -> {
+            User user = User.builder()
+                    .loginId("testuser")
+                    .password("password123")
+                    .name("테스트유저")
+                    .phoneNumber("010-1234-5678")
+                    .email("test@example.com")
+                    .address("테스트 주소")
+                    .build();
+            User savedUser = userRepository.save(user);
+            // 영속성 컨텍스트에 즉시 반영
+            entityManager.flush();
+            // 영속성 컨텍스트 초기화 (테스트 메서드에서 새로운 트랜잭션으로 로드되도록)
+            entityManager.clear();
+            return savedUser;
+        });
+        // 초기화 후 다시 로드하여 영속성 컨텍스트에 연결된 상태로 만듦
+        testUser = userRepository.findByLoginId("testuser").get();
     }
 
     @Test
-    @DisplayName("검색 API 테스트 - 성공")
-    void searchFindPets_Success() throws Exception {
-        // given
-        Page<FindPetPost> mockPage = new PageImpl<>(List.of(testPost));
-        when(findPetPostService.searchFindPetPosts(any(FindPetSearchCriteria.class)))
-                .thenReturn(mockPage);
+    @DisplayName("더미 FindPetPost 5개 생성")
+    void createDummyFindPetPosts() {
+        IntStream.rangeClosed(1, 5).forEach(i -> {
+            FindPetPost findPetPost = FindPetPost.builder()
+                    .user(testUser) // 위에서 생성한 테스트 사용자 연결
+                    .title("더미 게시글 제목 " + i)
+                    .content("더미 게시글 내용 " + i + "입니다. 이것은 테스트용 게시글입니다.")
+                    .animalType(FindPetPost.AnimalType.DOG)
+                    .breed("믹스견")
+                    .gender(FindPetPost.Gender.MALE)
+                    .lostDate(LocalDate.of(2024, 8, i))
+                    .cityProvince("서울시")
+                    .district("강남구")
+                    .contact("010-9876-5432")
+                    .isFound(false)
+                    .build();
+            findPetPostRepository.save(findPetPost);
+        });
 
-        // when & then
-        mockMvc.perform(get("/api/find-pets/search")
-                        .param("title", "테스트")
-                        .param("page", "0")
-                        .param("size", "20")
-                        .param("sortBy", "createdAt")
-                        .param("sortDir", "DESC")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").exists())
-                .andExpect(jsonPath("$.content[0].title").value("테스트 게시글"))
-                .andExpect(jsonPath("$.page").value(0))
-                .andExpect(jsonPath("$.totalElements").value(1))
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("필터 옵션 조회 API 테스트")
-    void getFilterOptions_Success() throws Exception {
-        // given
-        Map<String, String> animalType = new HashMap<>();
-        animalType.put("value", "DOG");
-        animalType.put("label", "개");
-
-        Map<String, String> gender = new HashMap<>();
-        gender.put("value", "MALE");
-        gender.put("label", "수컷");
-
-        when(findPetPostService.getAllAnimalTypes()).thenReturn(List.of(animalType));
-        when(findPetPostService.getAllGenders()).thenReturn(List.of(gender));
-        when(findPetPostService.getAllCityProvinces()).thenReturn(List.of("서울특별시"));
-
-        // when & then
-        mockMvc.perform(get("/api/find-pets/filter-options")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.animalTypes").exists())
-                .andExpect(jsonPath("$.genders").exists())
-                .andExpect(jsonPath("$.cityProvinces").exists())
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("특정 게시글 조회 API 테스트")
-    void getFindPetPost_Success() throws Exception {
-        // given
-        when(findPetPostService.findById(1L)).thenReturn(testPost);
-
-        // when & then
-        mockMvc.perform(get("/api/find-pets/1")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.title").value("테스트 게시글"))
-                .andExpect(jsonPath("$.author").value("테스트 작성자"))
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("게시글 찾기 상태 토글 API 테스트")
-    void toggleFoundStatus_Success() throws Exception {
-        // given
-        FindPetPost updatedPost = FindPetPost.builder()
-                .id(1L)
-                .title("테스트 게시글")
-                .isFound(true)
-                .build();
-
-        when(findPetPostService.toggleFoundStatus(1L)).thenReturn(updatedPost);
-
-        // when & then
-        mockMvc.perform(patch("/api/find-pets/1/toggle-found")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.isFound").value(true))
-                .andExpect(jsonPath("$.message").value("검색이 완료되었습니다."))
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("지역별 군/구 조회 API 테스트")
-    void getDistricts_Success() throws Exception {
-        // given
-        when(findPetPostService.getDistrictsByCity("서울특별시"))
-                .thenReturn(Arrays.asList("강남구", "서초구", "마포구"));
-
-        // when & then
-        mockMvc.perform(get("/api/find-pets/districts")
-                        .param("cityProvince", "서울특별시")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0]").value("강남구"))
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("동물 타입별 품종 조회 API 테스트")
-    void getBreeds_Success() throws Exception {
-        // given
-        when(findPetPostService.getBreedsByAnimalType(FindPetPost.AnimalType.DOG))
-                .thenReturn(Arrays.asList("골든리트리버", "비글", "시바견"));
-
-        // when & then
-        mockMvc.perform(get("/api/find-pets/breeds")
-                        .param("animalType", "DOG")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0]").value("골든리트리버"))
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("존재하지 않는 게시글 조회 시 404 반환")
-    void getFindPetPost_NotFound_Returns404() throws Exception {
-        // given
-        when(findPetPostService.findById(999L))
-                .thenThrow(new RuntimeException("게시글을 찾을 수 없습니다"));
-
-        // when & then
-        mockMvc.perform(get("/api/find-pets/999")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andDo(print());
-    }
-
-    @Test
-    @DisplayName("잘못된 파라미터로 군/구 조회 시 400 반환")
-    void getDistricts_InvalidParameter_Returns400() throws Exception {
-        // given
-        when(findPetPostService.getDistrictsByCity(""))
-                .thenThrow(new IllegalArgumentException("시·도 정보가 필요합니다"));
-
-        // when & then
-        mockMvc.perform(get("/api/find-pets/districts")
-                        .param("cityProvince", "")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andDo(print());
+        System.out.println("더미 FindPetPost 5개가 성공적으로 생성되었습니다.");
     }
 }

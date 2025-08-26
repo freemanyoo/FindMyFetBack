@@ -1,6 +1,5 @@
-package com.busanit501.findmyfet.dto;
+package com.busanit501.findmyfet.dto.post;
 
-import com.busanit501.findmyfet.domain.FindPetPost;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Max;

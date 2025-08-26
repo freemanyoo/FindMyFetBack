@@ -1,7 +1,6 @@
 package com.busanit501.findmyfet.service;
 
-import com.busanit501.findmyfet.domain.FindPetPost;
-import com.busanit501.findmyfet.dto.FindPetSearchCriteria;
+import com.busanit501.findmyfet.dto.post.FindPetSearchCriteria;
 import com.busanit501.findmyfet.repository.FindPetPostRepository;
 import com.busanit501.findmyfet.repository.FindPetPostSpecification;
 import lombok.RequiredArgsConstructor;

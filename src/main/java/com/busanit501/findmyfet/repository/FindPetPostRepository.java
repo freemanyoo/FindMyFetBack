@@ -1,6 +1,5 @@
 package com.busanit501.findmyfet.repository;
 
-import com.busanit501.findmyfet.domain.FindPetPost;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -41,8 +40,5 @@ public interface FindPetPostRepository extends JpaRepository<FindPetPost, Long>,
      */
     List<FindPetPost> findByIsFoundFalseOrderByCreatedAtDesc();
 
-    /**
-     * 특정 작성자의 게시글 조회
-     */
-    List<FindPetPost> findByAuthorContainingIgnoreCaseOrderByCreatedAtDesc(String author);
+    
 }

@@ -1,7 +1,7 @@
 package com.busanit501.findmyfet.controller;
 
-import com.busanit501.findmyfet.domain.FindPetPost;
-import com.busanit501.findmyfet.dto.FindPetSearchCriteria;
+import com.busanit501.findmyfet.domain.post.Post;
+import com.busanit501.findmyfet.dto.post.FindPetSearchCriteria;
 import com.busanit501.findmyfet.service.FindPetPostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -107,7 +107,7 @@ public class FindPetPostController {
      * GET /api/find-pets/breeds?animalType=DOG
      */
     @GetMapping("/breeds")
-    public ResponseEntity<List<String>> getBreeds(@RequestParam FindPetPost.AnimalType animalType) {
+    public ResponseEntity<List<String>> getBreeds(@RequestParam Post.AnimalType animalType) {
         try {
             List<String> breeds = findPetPostService.getBreedsByAnimalType(animalType);
             return ResponseEntity.ok(breeds);
@@ -127,7 +127,7 @@ public class FindPetPostController {
      * GET /api/find-pets/{id}
      */
     @GetMapping("/{id}")
-    public ResponseEntity<FindPetPost> getFindPetPost(@PathVariable Long id) {
+    public ResponseEntity<Post> getFindPetPost(@PathVariable Long id) {
         try {
             FindPetPost post = findPetPostService.findById(id);
             return ResponseEntity.ok(post);
