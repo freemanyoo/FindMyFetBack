@@ -1,8 +1,13 @@
 package com.busanit501.findmyfet.dto.post;
 
 import com.busanit501.findmyfet.domain.post.Post;
+import com.busanit501.findmyfet.domain.post.PostType;
+import com.busanit501.findmyfet.domain.post.Status;
 import com.busanit501.findmyfet.dto.user.AuthorDto;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -10,6 +15,8 @@ import java.util.stream.Collectors;
 
 // 상세 조회 DTO
 @Getter
+@Setter
+@NoArgsConstructor
 public class PostDetailResponseDto {
 
     private Long postId;
@@ -24,37 +31,15 @@ public class PostDetailResponseDto {
     private double latitude;
     private double longitude;
 
+    private String gender; // <<<<<<<<<<<< 추가 (프론트에 전달할 때는 문자열로)
+
     private String location; // 잃어버린장소 추가 250825
 
-    private String postType;
-    private String status;
+    private PostType postType; // Post 엔티티와 타입을 맞춤
+    private Status status;     // Post 엔티티와 타입을 맞춤
+
     private LocalDateTime createdAt;
     private AuthorDto author; // TODO: User 기능 연동 후 추가
     private List<String> imageUrls; // 이미지 URL 목록
 
-    public PostDetailResponseDto(Post entity) {
-        this.postId = entity.getId();
-        this.title = entity.getTitle();
-        this.content = entity.getContent();
-        this.animalName = entity.getAnimalName();
-        this.animalAge = entity.getAnimalAge();
-        this.animalCategory = entity.getAnimalCategory();
-        this.animalBreed = entity.getAnimalBreed();
-        this.lostTime = entity.getLostTime();
-
-        this.latitude = entity.getLatitude();
-        this.longitude = entity.getLongitude();
-
-        this.location = entity.getLocation(); // 잃어버린장소 추가 250825
-
-        this.postType = entity.getPostType().name();
-        this.status = entity.getStatus().name();
-        this.createdAt = entity.getCreatedAt();
-        this.imageUrls = entity.getImages().stream()
-                .map(image -> image.getImageUrl())
-                .collect(Collectors.toList());
-        if (entity.getUser() != null) { // getMember() -> getUser()
-            this.author = new AuthorDto(entity.getUser()); // getMember() -> getUser()
-        }
-    }
 }

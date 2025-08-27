@@ -3,9 +3,13 @@ package com.busanit501.findmyfet.dto.post;
 import com.busanit501.findmyfet.domain.post.Post;
 import com.busanit501.findmyfet.domain.post.PostType;
 import com.busanit501.findmyfet.domain.post.Status;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
+@NoArgsConstructor
 public class MyPostResponseDto {
     private Long postId;
     private String title;

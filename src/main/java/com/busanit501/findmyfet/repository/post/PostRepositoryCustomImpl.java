@@ -34,6 +34,11 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
             booleanBuilder.and(post.animalCategory.eq(pageRequestDTO.getCategory()));
         }
 
+        // =================== 성별 검색 조건 추가 ===================
+        if (StringUtils.hasText(pageRequestDTO.getGender())) {
+            booleanBuilder.and(post.gender.stringValue().equalsIgnoreCase(pageRequestDTO.getGender()));
+        }
+
         // ===================  핵심 변경 사항  ===================
         // 기존 : booleanBuilder.and(post.user.address.contains(pageRequestDTO.getRegion()));
         // 변경 : Post 엔티티의 location 필드와 정확히 일치하는 것을 검색합니다.

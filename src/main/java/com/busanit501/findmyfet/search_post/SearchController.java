@@ -29,4 +29,10 @@ public class SearchController {
         return ResponseEntity.ok(regions);
     }
 
+    @GetMapping("/genders") // <<<<<<<<<<<< API 추가
+    public ResponseEntity<List<String>> getGenderList() {
+        List<String> genders = searchService.getGenderList();
+        return ResponseEntity.ok(genders);
+    }
+
 }

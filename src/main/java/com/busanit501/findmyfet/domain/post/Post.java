@@ -35,6 +35,11 @@ public class Post extends BaseEntity {
     private String animalCategory; // 예시: "개", "고양이" 등
     private String animalBreed; // 품종
 
+//    private String gender;
+
+    @Enumerated(EnumType.STRING) // DB에는 "MALE", "FEMALE" 등의 문자열로 저장
+    private AnimalGender gender; // <<<<<<<<<<<< 성별 필드 추가
+
     private LocalDateTime lostTime; // 실종 시간
 
     private double latitude;  // 위도
@@ -46,9 +51,10 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private PostType postType;
 
+    @Builder.Default // <<<<<<<<<<<<<<< 이 어노테이션이 매우 중요합니다.
     @Enumerated(EnumType.STRING) // "ACTIVE", "COMPLETED"
     @Column(nullable = false)
-    private Status status;
+    private Status status = Status.ACTIVE; // <<<<<<< '= Status.ACTIVE' 로 기본값을 설정합니다.
 
 //    private LocalDateTime createdAt;
 
@@ -59,9 +65,9 @@ public class Post extends BaseEntity {
     private List<Image> images = new ArrayList<>();
 
     // 연관관계의 주인 : Post(N쪽)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false) // user_id 컬럼으로 조인
-    private User user;
+     @ManyToOne(fetch = FetchType.LAZY)
+     @JoinColumn(name = "user_id", nullable = false) // user_id 컬럼으로 조인
+     private User user;
 
     //== 연관관계 편의 메서드 ==//
     public void setUser(User user) {
@@ -74,14 +80,14 @@ public class Post extends BaseEntity {
         image.setPost(this);
     }
 
+
     // 비즈니스 로직 : 업데이트 (모든 필드를 받도록)
-//    public void update(String title, String content, String animalName, int animalAge, String animalCategory,
-//                       String animalBreed, LocalDateTime lostTime, double latitude, double longitude, String location, PostType postType) {
     public void update(PostUpdateRequestDto dto) {
         this.title = dto.getTitle();
         this.content = dto.getContent();
         this.animalName = dto.getAnimalName();
         this.animalAge = dto.getAnimalAge();
+        this.gender = dto.getGender();
         this.animalCategory = dto.getAnimalCategory();
         this.animalBreed = dto.getAnimalBreed();
         this.lostTime = dto.getLostTime();

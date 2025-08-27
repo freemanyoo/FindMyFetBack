@@ -36,6 +36,8 @@ public class PageRequestDto {
     private String region;   // 지역
     private String keyword;  // 검색 키워드 (제목, 내용 등)
 
+    private String gender; // <<<<<<<<<<<< 검색 조건 추가
+
     // Spring Data JPA의 Pageable 객체를 생성하는 헬퍼 메소드
     public Pageable getPageable(String... props) {
         return PageRequest.of(this.page - 1, this.size, Sort.by(props).descending());
