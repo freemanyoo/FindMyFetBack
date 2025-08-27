@@ -35,8 +35,6 @@ public class Post extends BaseEntity {
     private String animalCategory; // 예시: "개", "고양이" 등
     private String animalBreed; // 품종
 
-//    private String gender;
-
     private LocalDateTime lostTime; // 실종 시간
 
     private double latitude;  // 위도
@@ -61,9 +59,9 @@ public class Post extends BaseEntity {
     private List<Image> images = new ArrayList<>();
 
     // 연관관계의 주인 : Post(N쪽)
-     @ManyToOne(fetch = FetchType.LAZY)
-     @JoinColumn(name = "user_id", nullable = false) // user_id 컬럼으로 조인
-     private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false) // user_id 컬럼으로 조인
+    private User user;
 
     //== 연관관계 편의 메서드 ==//
     public void setUser(User user) {
