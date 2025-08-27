@@ -48,9 +48,9 @@ public class UserService {
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
-
-        String accessToken = jwtUtil.generateAccessToken(user.getLoginId());
-        String refreshToken = jwtUtil.generateRefreshToken(user.getLoginId());
+        String role = user.getRole().name();
+        String accessToken = jwtUtil.generateAccessToken(loginId, role);
+        String refreshToken = jwtUtil.generateRefreshToken(user.getLoginId(), role);
 
         user.updateRefreshToken(refreshToken);
         userRepository.save(user);
@@ -120,6 +120,7 @@ public class UserService {
         if (!refreshToken.equals(user.getRefreshToken())) {
             throw new IllegalArgumentException("유효하지 않은 Refresh Token 입니다.");
         }
-        return jwtUtil.generateAccessToken(loginId);
+        String role = user.getRole().name();
+        return jwtUtil.generateAccessToken(loginId, role);
     }
 }
