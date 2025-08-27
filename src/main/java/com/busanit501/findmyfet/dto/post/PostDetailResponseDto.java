@@ -6,6 +6,7 @@ import com.busanit501.findmyfet.domain.post.Status;
 import com.busanit501.findmyfet.dto.user.AuthorDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
 // 상세 조회 DTO
 @Getter
 @Setter
-@AllArgsConstructor
+@NoArgsConstructor
 public class PostDetailResponseDto {
 
     private Long postId;
