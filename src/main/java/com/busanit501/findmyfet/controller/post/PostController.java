@@ -25,9 +25,6 @@ public class PostController {
 
     // 1 게시글 목록 조회(페이징처리 + 검색기능)
     @GetMapping
-//    public ResponseEntity<List<PostListResponseDto>> getPostList() {
-//        List<PostListResponseDto> posts = postService.findAllPosts();
-//        return ResponseEntity.ok(posts);
     public ResponseEntity<PageResponseDto<PostListResponseDto>> getPostList(PageRequestDto pageRequestDTO) {
         PageResponseDto<PostListResponseDto> response = postService.findAllPosts(pageRequestDTO);
         return ResponseEntity.ok(response);
@@ -47,9 +44,8 @@ public class PostController {
             @Valid @RequestPart("requestDto") PostCreateRequestDto requestDto,
             @RequestPart(value = "images", required = false) List<MultipartFile> images) {
         // @AuthenticationPrincipal UserDetailsImpl userDetails) { // TODO: Security 연동 후 주석 해제
-
         // Long userId = userDetails.getUser().getUserid(); // TODO: Security 연동 후 이 코드로 교체
-        Long tempUserId = 1L; // <<<<<<<<<<<<<<<<<<<< 임시 사용자 ID (테스트용)
+        Long tempUserId = 1L; // <<<<<<<<<<<<<<<<<<<< 임시 사용자 ID (테스트용) 연동완료시 삭제해도 무방
 
         Long postId = postService.createPost(requestDto, images, tempUserId);
         return ResponseEntity.status(HttpStatus.CREATED).body("게시글이 성공적으로 등록되었습니다. ID: " + postId);
@@ -62,9 +58,8 @@ public class PostController {
             @RequestPart("requestDto") PostUpdateRequestDto requestDto,
             @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages) {
         // @AuthenticationPrincipal UserDetailsImpl userDetails) { // TODO: Security 연동 후 주석 해제
-
         // Long userId = userDetails.getUser().getUserid(); // TODO: Security 연동 후 이 코드로 교체
-        Long tempUserId = 1L; // <<<<<<<<<<<<<<<<<<<< 임시 사용자 ID (테스트용)
+        Long tempUserId = 1L; // <<<<<<<<<<<<<<<<<<<< 임시 사용자 ID (테스트용) 연동완료시 삭제해도 무방
 
         postService.updatePost(postId, requestDto, newImages, tempUserId);
         return ResponseEntity.ok("게시글이 성공적으로 수정되었습니다. ID: " + postId);
@@ -74,9 +69,8 @@ public class PostController {
     @DeleteMapping("/{postId}")
     public ResponseEntity<String> deletePost(@PathVariable Long postId) {
         // @AuthenticationPrincipal UserDetailsImpl userDetails) { // TODO: Security 연동 후 주석 해제
-
         // Long userId = userDetails.getUser().getUserid(); // TODO: Security 연동 후 이 코드로 교체
-        Long tempUserId = 1L; // <<<<<<<<<<<<<<<<<<<< 임시 사용자 ID (테스트용)
+        Long tempUserId = 1L; // <<<<<<<<<<<<<<<<<<<< 임시 사용자 ID (테스트용) 연동완료시 삭제해도 무방
 
         postService.deletePost(postId, tempUserId);
         return ResponseEntity.ok("게시글이 성공적으로 삭제되었습니다. ID: " + postId);
@@ -86,9 +80,8 @@ public class PostController {
     @PutMapping("/{postId}/complete")
     public ResponseEntity<String> completePost(@PathVariable Long postId) {
         // @AuthenticationPrincipal UserDetailsImpl userDetails) { // TODO: Security 연동 후 주석 해제
-
         // Long userId = userDetails.getUser().getUserid(); // TODO: Security 연동 후 이 코드로 교체
-        Long tempUserId = 1L; // <<<<<<<<<<<<<<<<<<<< 임시 사용자 ID (테스트용)
+        Long tempUserId = 1L; // <<<<<<<<<<<<<<<<<<<< 임시 사용자 ID (테스트용) 연동완료시 삭제해도 무방
 
         postService.completePost(postId, tempUserId);
         return ResponseEntity.ok("찾기 완료 처리되었습니다. ID: " + postId);
@@ -98,9 +91,8 @@ public class PostController {
     @GetMapping("/my")
     public ResponseEntity<List<MyPostResponseDto>> getMyPosts() {
         // @AuthenticationPrincipal UserDetailsImpl userDetails) { // TODO: Security 연동 후 주석 해제
-
         // Long userId = userDetails.getUser().getUserid(); // TODO: Security 연동 후 이 코드로 교체
-        Long tempUserId = 1L; // <<<<<<<<<<<<<<<<<<<< 임시 사용자 ID (테스트용)
+        Long tempUserId = 1L; // <<<<<<<<<<<<<<<<<<<< 임시 사용자 ID (테스트용) 연동완료시 삭제해도 무방
 
         List<MyPostResponseDto> myPosts = postService.findMyPosts(tempUserId);
         return ResponseEntity.ok(myPosts);
