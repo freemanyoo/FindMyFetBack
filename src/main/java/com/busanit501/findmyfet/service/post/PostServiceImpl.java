@@ -10,6 +10,7 @@ import com.busanit501.findmyfet.dto.post.*;
 import com.busanit501.findmyfet.repository.post.ImageRepository;
 import com.busanit501.findmyfet.repository.post.PostRepository;
 import com.busanit501.findmyfet.repository.UserRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
@@ -34,6 +35,7 @@ public class PostServiceImpl implements PostService {
     private final ImageRepository imageRepository;
     private final FileUploadService fileUploadService;
     private final UserRepository  userRepository;
+    private final ModelMapper modelMapper;
 
     // 페이징처리 + 게시판 조회
     @Override
@@ -45,9 +47,9 @@ public class PostServiceImpl implements PostService {
         // 2. QueryDSL을 사용하여 동적 쿼리 및 페이징 실행
         Page<Post> result = postRepository.search(pageRequestDTO, pageable);
 
-        // 3. Page<Post>를 List<PostListResponseDto>로 변환
+        // [변경] .map(PostListResponseDto::new) -> modelMapper.map()
         List<PostListResponseDto> dtoList = result.getContent().stream()
-                .map(PostListResponseDto::new)
+                .map(post -> modelMapper.map(post, PostListResponseDto.class))
                 .collect(Collectors.toList());
 
         // 4. PageResponseDTO를 생성하여 반환
@@ -74,11 +76,18 @@ public class PostServiceImpl implements PostService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다. id=" + userId));
 
+        // ModelMapper는 DTO에 없는 필드는 자동으로 채워주지 않으므로, status와 같은 기본값이나 연관관계는 수동으로 설정해야
         // 1-1. DTO를 Post 엔티티로 변환 후 저장
-        Post post = requestDto.toEntity();
-        post.setUser(user); //
+        Post post = modelMapper.map(requestDto, Post.class);
 
+        post.setUser(user); // 연관관계 설정
+            // post.setStatus(Status.ACTIVE); // Post 엔티티에 @Builder.Default가 없으면 이 코드가 필요할 수 있습니다.
+            // PostCreateRequestDto.toEntity() 에서는 status를 ACTIVE로 설정했었음.
+            // modelMapper는 status 필드가 DTO에 없으므로 null로 설정할 수 있으니 주의.
+            // Post 엔티티의 status 필드 선언부에 @Builder.Default와 함께 초기값을 주면 이 문제는 해결됩니다.
+            // @Builder.Default private Status status = Status.ACTIVE;
         Post savedPost = postRepository.save(post);
+
         log.info("Saved Post: {}, Author: {}", savedPost.getId(), user.getName());
 
         if (images != null && !images.isEmpty()) {
@@ -111,15 +120,19 @@ public class PostServiceImpl implements PostService {
     public PostDetailResponseDto findPostById(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 없습니다. id=" + postId));
-        return new PostDetailResponseDto(post);
+        // [기존] new PostDetailResponseDto(post) -> modelMapper.map()
+        return modelMapper.map(post, PostDetailResponseDto.class);
     }
 
+    // 내 게시글 찾기
     @Override
     @Transactional(readOnly = true)
     public List<MyPostResponseDto> findMyPosts(Long userId) {
+
         return postRepository.findByUser_UserIdOrderByCreatedAtDesc(userId)
                 .stream()
-                .map(MyPostResponseDto::new)
+              //[기존] .map(MyPostResponseDto::new)
+                .map(post -> modelMapper.map(post, MyPostResponseDto.class))
                 .collect(Collectors.toList());
     }
 
