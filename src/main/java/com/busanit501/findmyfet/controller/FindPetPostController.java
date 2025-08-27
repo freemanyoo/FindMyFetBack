@@ -1,7 +1,7 @@
 package com.busanit501.findmyfet.controller;
 
-import com.busanit501.findmyfet.domain.FindPetPost;
-import com.busanit501.findmyfet.dto.FindPetSearchCriteria;
+import com.busanit501.findmyfet.domain.post.Post;
+import com.busanit501.findmyfet.dto.post.FindPetSearchCriteria;
 import com.busanit501.findmyfet.service.FindPetPostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class FindPetPostController {
             @Valid @ModelAttribute FindPetSearchCriteria criteria) {
 
         try {
-            Page<FindPetPost> result = findPetPostService.searchFindPetPosts(criteria);
+            Page<Post> result = findPetPostService.searchFindPetPosts(criteria);
 
             Map<String, Object> response = new HashMap<>();
             response.put("content", result.getContent());
@@ -63,14 +63,14 @@ public class FindPetPostController {
         try {
             Map<String, Object> options = new HashMap<>();
 
-            // 동물 타입 목록
-            options.put("animalTypes", findPetPostService.getAllAnimalTypes());
+            // 동물 카테고리 목록 (animalCategory 기반)
+            options.put("animalCategories", findPetPostService.getAllAnimalCategories());
 
-            // 성별 목록
-            options.put("genders", findPetPostService.getAllGenders());
+            // 게시글 타입 목록
+            options.put("postTypes", findPetPostService.getAllPostTypes());
 
-            // 시·도 목록
-            options.put("cityProvinces", findPetPostService.getAllCityProvinces());
+            // 지역 목록 (location 기반)
+            options.put("locations", findPetPostService.getAllLocations());
 
             return ResponseEntity.ok(options);
 
@@ -83,33 +83,13 @@ public class FindPetPostController {
     }
 
     /**
-     * 특정 시·도의 군/구 목록 조회
-     * GET /api/find-pets/districts?cityProvince=서울특별시
-     */
-    @GetMapping("/districts")
-    public ResponseEntity<List<String>> getDistricts(@RequestParam String cityProvince) {
-        try {
-            List<String> districts = findPetPostService.getDistrictsByCity(cityProvince);
-            return ResponseEntity.ok(districts);
-
-        } catch (IllegalArgumentException e) {
-            log.warn("잘못된 파라미터: {}", e.getMessage());
-            return ResponseEntity.badRequest().build();
-
-        } catch (Exception e) {
-            log.error("군/구 목록 조회 중 오류 발생", e);
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    /**
-     * 특정 동물 타입의 품종 목록 조회
-     * GET /api/find-pets/breeds?animalType=DOG
+     * 특정 동물 카테고리의 품종 목록 조회
+     * GET /api/find-pets/breeds?animalCategory=개
      */
     @GetMapping("/breeds")
-    public ResponseEntity<List<String>> getBreeds(@RequestParam FindPetPost.AnimalType animalType) {
+    public ResponseEntity<List<String>> getBreeds(@RequestParam String animalCategory) {
         try {
-            List<String> breeds = findPetPostService.getBreedsByAnimalType(animalType);
+            List<String> breeds = findPetPostService.getBreedsByAnimalCategory(animalCategory);
             return ResponseEntity.ok(breeds);
 
         } catch (IllegalArgumentException e) {
@@ -127,9 +107,9 @@ public class FindPetPostController {
      * GET /api/find-pets/{id}
      */
     @GetMapping("/{id}")
-    public ResponseEntity<FindPetPost> getFindPetPost(@PathVariable Long id) {
+    public ResponseEntity<Post> getFindPetPost(@PathVariable Long id) {
         try {
-            FindPetPost post = findPetPostService.findById(id);
+            Post post = findPetPostService.findById(id);
             return ResponseEntity.ok(post);
 
         } catch (RuntimeException e) {
@@ -143,27 +123,27 @@ public class FindPetPostController {
     }
 
     /**
-     * 검색 완료 상태 토글
-     * PATCH /api/find-pets/{id}/toggle-found
+     * 게시글 상태 완료로 변경
+     * PATCH /api/find-pets/{id}/complete
      */
-    @PatchMapping("/{id}/toggle-found")
-    public ResponseEntity<Map<String, Object>> toggleFoundStatus(@PathVariable Long id) {
+    @PatchMapping("/{id}/complete")
+    public ResponseEntity<Map<String, Object>> completePost(@PathVariable Long id) {
         try {
-            FindPetPost updatedPost = findPetPostService.toggleFoundStatus(id);
+            Post updatedPost = findPetPostService.completePost(id);
 
             Map<String, Object> response = new HashMap<>();
             response.put("id", updatedPost.getId());
-            response.put("isFound", updatedPost.getIsFound());
-            response.put("message", updatedPost.getIsFound() ? "검색이 완료되었습니다." : "검색 중으로 변경되었습니다.");
+            response.put("status", updatedPost.getStatus());
+            response.put("message", "게시글이 완료 처리되었습니다.");
 
             return ResponseEntity.ok(response);
 
         } catch (RuntimeException e) {
-            log.warn("상태 토글 실패: {}", e.getMessage());
+            log.warn("상태 변경 실패: {}", e.getMessage());
             return ResponseEntity.notFound().build();
 
         } catch (Exception e) {
-            log.error("상태 토글 중 오류 발생", e);
+            log.error("상태 변경 중 오류 발생", e);
             return ResponseEntity.internalServerError().build();
         }
     }
