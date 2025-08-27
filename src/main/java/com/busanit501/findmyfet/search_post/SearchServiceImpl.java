@@ -1,8 +1,11 @@
 package com.busanit501.findmyfet.search_post;
 
+import com.busanit501.findmyfet.domain.post.AnimalGender;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SearchServiceImpl implements SearchService {
@@ -26,5 +29,13 @@ public class SearchServiceImpl implements SearchService {
                 "대전시", "울산시", "경기도", "강원도"
                 // 필요에 따라 다른 지역 추가
         );
+    }
+
+    @Override
+    public List<String> getGenderList() {
+        // Enum의 모든 값을 가져와서 "MALE", "FEMALE", "UNKNOWN" 문자열 리스트로 반환
+        return Arrays.stream(AnimalGender.values())
+                .map(Enum::name)
+                .collect(Collectors.toList());
     }
 }

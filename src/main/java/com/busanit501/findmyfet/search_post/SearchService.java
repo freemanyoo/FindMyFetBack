@@ -14,4 +14,9 @@ public interface SearchService {
      */
     List<String> getRegionList();
 
+    /**
+     * 프론트엔드 검색 필터에 사용될 성별 목록을 반환합니다.
+     */
+    List<String> getGenderList(); // <<<<<<<<<<<< 메서드 추가
+
 }
