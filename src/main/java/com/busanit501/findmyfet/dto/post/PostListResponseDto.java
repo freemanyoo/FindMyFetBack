@@ -6,11 +6,12 @@ import com.busanit501.findmyfet.domain.post.Status;
 import com.busanit501.findmyfet.dto.user.AuthorDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
+@NoArgsConstructor
 public class PostListResponseDto {
     private Long postId;
     private String title;
