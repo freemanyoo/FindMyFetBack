@@ -11,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -58,6 +60,13 @@ public class AdminController {
     @GetMapping("/users")
     public ResponseEntity<CommonResponse<List<UserInfoResponseDTO>>> getAllUsers() {
         log.info("Admin: getAllUsers 호출");
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            log.info("Authentication Principal: {}", authentication.getPrincipal());
+            log.info("Authentication Authorities: {}", authentication.getAuthorities());
+        } else {
+            log.info("Authentication object is null.");
+        }
         List<UserInfoResponseDTO> users = adminService.getAllUsers();
         return ResponseEntity.ok(CommonResponse.of("사용자 목록 조회 성공", users));
     }

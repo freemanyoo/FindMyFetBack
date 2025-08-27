@@ -9,6 +9,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,6 +24,7 @@ import java.util.Collections;
 
 @Component
 @RequiredArgsConstructor
+@Log4j2
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
@@ -29,29 +32,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        log.info("JwtAuthenticationFilter: doFilterInternal called for URI: {}", request.getRequestURI());
         String token = extractToken(request);
 
         if (StringUtils.hasText(token)) {
+            log.info("JwtAuthenticationFilter: Token found: {}", token);
             try {
                 Claims claims = jwtUtil.validateToken(token);
                 String loginId = claims.getSubject();
+                log.info("JwtAuthenticationFilter: Token validated for loginId: {}", loginId);
 
                 User user = userRepository.findByLoginId(loginId)
                         .orElseThrow(() -> new RuntimeException("User not found"));
+                log.info("JwtAuthenticationFilter: User found: {}", user.getLoginId());
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         user.getUserId(), // Principal: 보통 유저의 고유 ID를 저장
                         null,
-                        Collections.singleton(new SimpleGrantedAuthority(user.getRole().name()))
+                        Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
                 );
+                log.info("JwtAuthenticationFilter: Authorities: {}", authentication.getAuthorities());
 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                log.info("JwtAuthenticationFilter: SecurityContextHolder updated.");
 
             } catch (Exception e) {
-                // 토큰 유효성 검사 실패
+                log.error("JwtAuthenticationFilter: Token validation failed or user not found: {}", e.getMessage());
                 SecurityContextHolder.clearContext();
             }
+        } else {
+            log.info("JwtAuthenticationFilter: No token found in request.");
         }
 
         filterChain.doFilter(request, response);
