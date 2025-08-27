@@ -1,6 +1,8 @@
 package com.busanit501.findmyfet.dto.post;
 
+import com.busanit501.findmyfet.domain.post.AnimalGender;
 import com.busanit501.findmyfet.domain.post.PostType;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,6 +11,7 @@ import java.util.List;
 
 @Getter
 @Setter
+@AllArgsConstructor
 public class PostUpdateRequestDto {
     private String title;
     private String content;
@@ -20,6 +23,8 @@ public class PostUpdateRequestDto {
 
     private double latitude;
     private double longitude;
+
+    private AnimalGender gender; // <<<<<<<<<<<< 추가 (Enum 타입 사용)
 
     private String location; // <<<<<<<<<<<< 추가 250825
 

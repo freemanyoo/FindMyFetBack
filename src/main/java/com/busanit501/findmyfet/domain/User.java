@@ -14,8 +14,10 @@ import java.util.HashSet;
 @NoArgsConstructor
 @ToString
 public class User extends BaseEntity { // 베이스 엔티티 상속
+
     @Id // primary key
     @GeneratedValue(strategy = GenerationType.IDENTITY) // 키 자동생성
+    @Column(name = "user_id") // DB 컬럼명을 명시적으로 지정하는 것이 좋습니다.
     private Long userId;
 
     @Column(unique = true, nullable = false)
