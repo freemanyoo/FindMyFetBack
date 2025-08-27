@@ -17,7 +17,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/find-pets")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // React 앱에서 호출을 위한 CORS 설정
+
 @Slf4j
 public class FindPetPostController {
 
