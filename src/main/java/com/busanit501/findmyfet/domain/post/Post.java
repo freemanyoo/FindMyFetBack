@@ -51,9 +51,10 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private PostType postType;
 
+    @Builder.Default // <<<<<<<<<<<<<<< 이 어노테이션이 매우 중요합니다.
     @Enumerated(EnumType.STRING) // "ACTIVE", "COMPLETED"
     @Column(nullable = false)
-    private Status status;
+    private Status status = Status.ACTIVE; // <<<<<<< '= Status.ACTIVE' 로 기본값을 설정합니다.
 
 //    private LocalDateTime createdAt;
 
