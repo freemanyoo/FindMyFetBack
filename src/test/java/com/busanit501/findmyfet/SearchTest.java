@@ -21,37 +21,29 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Transactional
-public class SearchTest {
+class SearchTest {
 
-    @Autowired
-    private PostRepository postRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    @Autowired PostRepository postRepository;
+    @Autowired UserRepository userRepository;
+    @Autowired PasswordEncoder passwordEncoder;
 
     private User testUser;
 
     @BeforeEach
     void setUp() {
-        // 기존 데이터 삭제 (테스트 환경에 따라 필요 없을 수도 있음)
         postRepository.deleteAllInBatch();
         userRepository.deleteAllInBatch();
 
-        // 테스트용 사용자 생성
         testUser = User.builder()
                 .email("testuser@example.com")
                 .password(passwordEncoder.encode("password123"))
-                .name("TestUser") // nickname 대신 name 사용
-                .loginId("testuser") // loginId 추가
-                .phoneNumber("010-1234-5678") // phoneNumber 추가
-                .address("부산시") // address 추가
+                .name("TestUser")
+                .loginId("testuser")
+                .phoneNumber("010-1234-5678")
+                .address("부산시")
                 .build();
         userRepository.save(testUser);
 
-        // 더미 게시글 5개 생성
         for (int i = 1; i <= 5; i++) {
             Post post = Post.builder()
                     .title("테스트 게시글 " + i)
@@ -66,17 +58,17 @@ public class SearchTest {
                     .location("테스트 장소 " + i)
                     .postType(PostType.MISSING)
                     .status(Status.ACTIVE)
-                    .user(testUser) // 사용자 연결
+                    .user(testUser)
                     .build();
             postRepository.save(post);
         }
     }
 
     @Test
-    @DisplayName("더미 게시글 5개가 성공적으로 생성되는지 확인")
-    void testDummyPostsCreation() {
-        List<Post> posts = postRepository.findAll();
-        assertThat(posts).hasSize(5);
-        posts.forEach(post -> System.out.println("Created Post: " + post.getTitle() + " by " + post.getUser().getName()));
+    @DisplayName("더미 5건 저장 확인")
+    void 저장_검증() {
+        List<Post> all = postRepository.findAll();
+        assertThat(all).hasSize(5);
+        assertThat(all.get(0).getUser().getEmail()).isEqualTo("testuser@example.com");
     }
 }

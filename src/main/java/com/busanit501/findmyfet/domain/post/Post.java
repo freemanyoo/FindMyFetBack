@@ -1,5 +1,9 @@
 package com.busanit501.findmyfet.domain.post;
 
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import com.busanit501.findmyfet.domain.BaseEntity;
 import com.busanit501.findmyfet.domain.User;
 import com.busanit501.findmyfet.dto.post.PostUpdateRequestDto;
@@ -10,13 +14,17 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
 @Entity
 @Getter
 @Builder
 @AllArgsConstructor // Builder 패턴 쓰기위해서 모든 필드에 생성자 추가
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ToString(exclude = {"images", "user"}) // images 필드는 ToString에서 제외
+
 public class Post extends BaseEntity {
+
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -65,9 +73,10 @@ public class Post extends BaseEntity {
     private List<Image> images = new ArrayList<>();
 
     // 연관관계의 주인 : Post(N쪽)
-     @ManyToOne(fetch = FetchType.LAZY)
-     @JoinColumn(name = "user_id", nullable = false) // user_id 컬럼으로 조인
-     private User user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @JsonIgnore // ✅ 이 한 줄이 핵심: user 프록시를 JSON에서 제외
+    private User user;
 
     //== 연관관계 편의 메서드 ==//
     public void setUser(User user) {
