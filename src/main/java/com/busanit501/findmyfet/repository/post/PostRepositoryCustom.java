@@ -21,4 +21,5 @@ public interface PostRepositoryCustom {
     long countByStatus(Status status);
     long countByCreatedAtAfter(LocalDateTime dateTime);
     List<Post> findTop5ByStatusOrderByUpdatedAtDesc(Status status);
+    long countAllPosts();
 }

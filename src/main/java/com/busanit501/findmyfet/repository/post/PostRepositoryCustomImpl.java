@@ -123,4 +123,12 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
                 .limit(5)
                 .fetch();
     }
+
+    @Override
+    public long countAllPosts() {
+        QPost post = QPost.post;
+        return queryFactory.select(post.count())
+                .from(post)
+                .fetchOne();
+    }
 }
