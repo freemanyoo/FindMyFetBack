@@ -86,4 +86,41 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
         return new PageImpl<>(content, pageable, total);
     }
+
+    @Override
+    public long countByPostType(com.busanit501.findmyfet.domain.post.PostType postType) {
+        QPost post = QPost.post;
+        return queryFactory.select(post.count())
+                .from(post)
+                .where(post.postType.eq(postType))
+                .fetchOne();
+    }
+
+    @Override
+    public long countByStatus(com.busanit501.findmyfet.domain.post.Status status) {
+        QPost post = QPost.post;
+        return queryFactory.select(post.count())
+                .from(post)
+                .where(post.status.eq(status))
+                .fetchOne();
+    }
+
+    @Override
+    public long countByCreatedAtAfter(java.time.LocalDateTime dateTime) {
+        QPost post = QPost.post;
+        return queryFactory.select(post.count())
+                .from(post)
+                .where(post.createdAt.after(dateTime))
+                .fetchOne();
+    }
+
+    @Override
+    public java.util.List<com.busanit501.findmyfet.domain.post.Post> findTop5ByStatusOrderByUpdatedAtDesc(com.busanit501.findmyfet.domain.post.Status status) {
+        QPost post = QPost.post;
+        return queryFactory.selectFrom(post)
+                .where(post.status.eq(status))
+                .orderBy(post.updatedAt.desc())
+                .limit(5)
+                .fetch();
+    }
 }
