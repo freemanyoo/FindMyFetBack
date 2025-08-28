@@ -137,6 +137,8 @@ public class CommentService {
                 .commentId(comment.getCommentId())
                 .postId(comment.getPost().getId())
                 .userId(comment.getUser().getUserId())
+                .userName(comment.getUser().getName())
+                .loginId(comment.getUser().getLoginId())
                 .content(comment.getContent())
                 .imageUrl(comment.getImageUrl())
                 .createdAt(comment.getCreatedAt())

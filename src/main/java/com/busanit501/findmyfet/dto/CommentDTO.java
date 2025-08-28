@@ -14,7 +14,9 @@ import java.time.LocalDateTime;
 public class CommentDTO {
     private Long commentId;
     private Long postId;
-    private Long userId; // 작성자 ID
+    private Long userId;
+    private String userName;
+    private String loginId;
     private String content;
     private String imageUrl;
     private LocalDateTime createdAt;
