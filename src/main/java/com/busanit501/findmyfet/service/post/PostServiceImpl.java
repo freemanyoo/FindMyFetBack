@@ -12,7 +12,9 @@ import com.busanit501.findmyfet.repository.post.PostRepository;
 import com.busanit501.findmyfet.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -40,19 +42,28 @@ public class PostServiceImpl implements PostService {
     // 페이징처리 + 게시판 조회
     @Override
     @Transactional(readOnly = true)
-    public PageResponseDto<PostListResponseDto> findAllPosts(PageRequestDto pageRequestDTO) {
-        // 1. Pageable 객체 생성 (정렬 기준은 'createdAt')
-        Pageable pageable = pageRequestDTO.getPageable("createdAt");
+    // [수정] PageRequestDto -> FindPetSearchCriteria로 변경
+    public PageResponseDto<PostListResponseDto> findAllPosts(FindPetSearchCriteria criteria) {
+        // [수정] criteria 객체에서 페이징 및 정렬 정보를 가져와 Pageable 객체 생성
+        Pageable pageable = PageRequest.of(
+                criteria.getPage(),
+                criteria.getSize(),
+                Sort.by(Sort.Direction.fromString(criteria.getSortDir()), criteria.getSortBy())
+        );
 
-        // 2. QueryDSL을 사용하여 동적 쿼리 및 페이징 실행
-        Page<Post> result = postRepository.search(pageRequestDTO, pageable);
+        // [수정] Repository의 search 메서드에 criteria 객체를 전달
+        Page<Post> result = postRepository.search(criteria, pageable);
 
-        // [변경] .map(PostListResponseDto::new) -> modelMapper.map()
         List<PostListResponseDto> dtoList = result.getContent().stream()
                 .map(post -> modelMapper.map(post, PostListResponseDto.class))
                 .collect(Collectors.toList());
 
-        // 4. PageResponseDTO를 생성하여 반환
+        // [수정] PageResponseDto 생성 로직 변경
+        // PageRequestDto는 응답 DTO에서 페이징 UI를 계산할 때만 필요
+        PageRequestDto pageRequestDTO = new PageRequestDto();
+        pageRequestDTO.setPage(criteria.getPage() + 1);
+        pageRequestDTO.setSize(criteria.getSize());
+
         return PageResponseDto.<PostListResponseDto>withAll()
                 .pageRequestDTO(pageRequestDTO)
                 .dtoList(dtoList)

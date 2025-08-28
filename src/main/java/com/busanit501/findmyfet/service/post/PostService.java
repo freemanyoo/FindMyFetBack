@@ -10,8 +10,8 @@ import java.util.List;
 
 public interface PostService {
 
-    //페이징처리 추가
-    PageResponseDto<PostListResponseDto> findAllPosts(PageRequestDto pageRequestDTO);
+    // [수정] PageRequestDto -> FindPetSearchCriteria로 변경
+    PageResponseDto<PostListResponseDto> findAllPosts(FindPetSearchCriteria criteria);
 
     // 게시판 전체조회 -> 페이징 처리 + 전체조회로 바꿈.
 //    List<PostListResponseDto> findAllPosts();
