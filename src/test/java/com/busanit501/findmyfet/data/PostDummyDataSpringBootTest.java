@@ -5,13 +5,14 @@ import com.busanit501.findmyfet.domain.post.Post;
 import com.busanit501.findmyfet.domain.post.PostType;
 import com.busanit501.findmyfet.domain.post.Status;
 import com.busanit501.findmyfet.repository.post.PostRepository;
+import com.busanit501.findmyfet.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -24,23 +25,42 @@ class PostDummyDataSpringBootTest {
     @Autowired
     private PostRepository postRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @PersistenceContext
     private EntityManager em;
 
-    // ⚠️ 반드시 실제로 존재하는 유저 ID로 바꿔줘야 함
+    @BeforeEach
+    void setUp() {
+        postRepository.deleteAll();
+        userRepository.deleteAll(); // Also clean users to avoid issues with dummy user creation
+    }
+
     private User refUser() {
-        Long existingUserId = 1L; // ← 너의 환경에 맞게 수정
-        return em.getReference(User.class, existingUserId);
+        return userRepository.findAll().stream().findFirst()
+                .orElseGet(() -> {
+                    // Create a dummy user if none exists
+                    User newUser = User.builder()
+                            .loginId("testuser_dummy_" + System.currentTimeMillis()) // Unique ID
+                            .password("password")
+                            .email("test_dummy_" + System.currentTimeMillis() + "@example.com") // Unique email
+                            .name("Test Dummy")
+                            .role(com.busanit501.findmyfet.domain.Role.USER) // Assuming Role.USER exists and full path
+                            .build();
+                    User savedUser = userRepository.save(newUser);
+                    em.flush(); // Explicitly flush to ensure user is persisted
+                    return savedUser;
+                });
     }
 
     @Test
     @Transactional
-    @Commit // 테스트 트랜잭션을 롤백하지 않고 커밋
     void insertOneSample() {
         User user = refUser();
 
         Post post = Post.builder()
-                .title("【더미】실종 제보 - 콩이")
+                .title("【더미】실종 제보 - 콩이 " + System.currentTimeMillis())
                 .content("을지로입구역 인근에서 잃어버렸어요. 보신 분 제보 부탁드립니다.")
                 .animalName("콩이")
                 .animalAge(3)
@@ -60,7 +80,6 @@ class PostDummyDataSpringBootTest {
 
     @Test
     @Transactional
-    @Commit // 테스트 트랜잭션을 롤백하지 않고 커밋
     void bulkInsert50() {
         User user = refUser();
 
