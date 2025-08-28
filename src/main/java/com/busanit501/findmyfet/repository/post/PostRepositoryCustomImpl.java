@@ -28,7 +28,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom{
 
         // 검색 조건 추가
         if (StringUtils.hasText(pageRequestDTO.getType())) {
-            booleanBuilder.and(post.postType.stringValue().eq(pageRequestDTO.getType()));
+            booleanBuilder.and(post.postType.stringValue().eq(pageRequestDTO.getType().toUpperCase()));
         }
         if (StringUtils.hasText(pageRequestDTO.getCategory())) {
             booleanBuilder.and(post.animalCategory.eq(pageRequestDTO.getCategory()));
