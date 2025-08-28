@@ -145,9 +145,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/**", "/api/comments/**", "/api/find-pets/**").permitAll()
 
+                        // 관리자 권한이 필요한 API 경로 (가장 먼저 평가되도록 이동)
+                        .requestMatchers("/api/stats/dashboard").hasRole("ADMIN") // 대시보드 통계는 ADMIN만 접근 가능
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // 기존 admin 규칙
+
                         // 인증이 필요한 API 경로
                         .requestMatchers("/api/users/me", "/api/posts/my").authenticated()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                         // 위에 명시되지 않은 나머지 모든 경로는 인증을 요구
                         .anyRequest().authenticated()
