@@ -143,7 +143,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         // 인증 없이 허용할 API 경로
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/posts/**", "/api/comments/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/posts/**", "/api/comments/**", "/api/find-pets/**").permitAll()
 
                         // 인증이 필요한 API 경로
                         .requestMatchers("/api/users/me", "/api/posts/my").authenticated()
