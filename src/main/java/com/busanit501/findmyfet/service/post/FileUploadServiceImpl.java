@@ -16,7 +16,9 @@ import java.util.UUID;
 public class FileUploadServiceImpl implements FileUploadService {
 
     // .properties에서 설정한 파일 저장 경로 주입
-    @Value("${file.upload-dir}")
+//    @Value("${file.upload-dir}")
+//    private String uploadDir;
+    @Value("${upload.dir}")
     private String uploadDir;
 
     @Override
@@ -34,11 +36,17 @@ public class FileUploadServiceImpl implements FileUploadService {
         String uuid = UUID.randomUUID().toString();
         String storeFilename = uuid + "_" + originalFilename;
 
+
         // 저장할 전체 경로 생성
         Path savePath = Paths.get(uploadDir + storeFilename);
         log.info("Save Path: " + savePath);
 
         try {
+            // ✅ 폴더가 없으면 생성하는 로직 추가
+            File uploadDirFile = new File(uploadDir);
+            if (!uploadDirFile.exists()) {
+                uploadDirFile.mkdirs();
+            }
             // 지정된 경로에 파일 저장
             multipartFile.transferTo(savePath);
         } catch (IOException e) {
@@ -56,8 +64,11 @@ public class FileUploadServiceImpl implements FileUploadService {
         if (filename == null || filename.isEmpty()) {
             return;
         }
+
         // 전체 파일 경로 생성
-        File file = new File(uploadDir + filename);
+//        File file = new File(uploadDir + filename);
+//        log.info("Deleting file: " + file.getAbsolutePath());
+        File file = Paths.get(uploadDir, filename).toFile();
         log.info("Deleting file: " + file.getAbsolutePath());
 
         // 파일이 존재하면 삭제

@@ -33,8 +33,8 @@ public class CommentService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
-    @Value("${upload.path}")
-    private String uploadPath;
+    @Value("${upload.dir}")
+    private String uploadDir;
 
     public CommentDTO createComment(CommentDTO commentDTO, Long userId, MultipartFile imageFile) { // ✅ String loginId -> Long userId
         Post post = postRepository.findById(commentDTO.getPostId())
@@ -113,7 +113,7 @@ public class CommentService {
         try {
             String originalFilename = imageFile.getOriginalFilename();
             String savedFilename = UUID.randomUUID().toString() + "_" + originalFilename;
-            Path savedPath = Paths.get(uploadPath, savedFilename);
+            Path savedPath = Paths.get(uploadDir, savedFilename);
             Files.createDirectories(savedPath.getParent());
             imageFile.transferTo(savedPath.toFile());
             return savedFilename;
@@ -125,7 +125,7 @@ public class CommentService {
 
     private void deleteImage(String filename) {
         try {
-            Path filePath = Paths.get(uploadPath, filename);
+            Path filePath = Paths.get(uploadDir, filename);
             Files.deleteIfExists(filePath);
         } catch (IOException e) {
             log.error("이미지 파일 삭제 실패: " + filename, e);
