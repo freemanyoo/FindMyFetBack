@@ -2,12 +2,12 @@ package com.busanit501.findmyfet.repository.post;
 
 import com.busanit501.findmyfet.domain.post.Post;
 import com.busanit501.findmyfet.dto.paging.PageRequestDto;
+import com.busanit501.findmyfet.dto.post.FindPetSearchCriteria;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface PostRepositoryCustom {
 
-    // 페이징처리 동적 검색 쿼리를 처리할 메소드
-    Page<Post> search(PageRequestDto pageRequestDTO, Pageable pageable);
-
+    // [수정] PageRequestDto -> FindPetSearchCriteria로 변경
+    Page<Post> search(FindPetSearchCriteria criteria, Pageable pageable);
 }

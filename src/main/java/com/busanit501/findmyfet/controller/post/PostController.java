@@ -23,10 +23,11 @@ public class PostController {
 
     private final PostService postService;
 
-    // 1 게시글 목록 조회(페이징처리 + 검색기능)
+    // 1 게시글 목록 조회(페이징처리 + 상세 검색기능)
+    // [수정] PageRequestDto -> FindPetSearchCriteria로 변경하고 @ModelAttribute 추가
     @GetMapping
-    public ResponseEntity<PageResponseDto<PostListResponseDto>> getPostList(PageRequestDto pageRequestDTO) {
-        PageResponseDto<PostListResponseDto> response = postService.findAllPosts(pageRequestDTO);
+    public ResponseEntity<PageResponseDto<PostListResponseDto>> getPostList(@Valid @ModelAttribute FindPetSearchCriteria criteria) {
+        PageResponseDto<PostListResponseDto> response = postService.findAllPosts(criteria);
         return ResponseEntity.ok(response);
     }
 
