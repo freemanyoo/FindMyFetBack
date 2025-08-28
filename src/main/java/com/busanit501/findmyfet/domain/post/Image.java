@@ -24,6 +24,7 @@ public class Image {
     // 이미지를 조회할 때 연관된 Post 정보가 항상 필요하진 않으므로 LAZY(지연로딩) 설정
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id") // 외래키 컬럼명 지정
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Post post;
 
     // N:1, Image(N) : Comment(1)

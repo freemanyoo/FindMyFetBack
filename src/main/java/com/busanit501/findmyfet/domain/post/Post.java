@@ -72,6 +72,11 @@ public class Post extends BaseEntity {
     @Builder.Default // 빌더 패턴 사용 시 기본값으로 초기화
     private List<Image> images = new ArrayList<>();
 
+    // 1:N, Post(1) : Comment(N)
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<com.busanit501.findmyfet.domain.Comment> comments = new ArrayList<>();
+
     // 연관관계의 주인 : Post(N쪽)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
