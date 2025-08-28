@@ -26,25 +26,26 @@ public class JwtUtil {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateToken(String loginId, long expirationHours) {
+    public String generateToken(String loginId, String role, long expirationHours) {
         Instant now = Instant.now();
         Instant expiry = now.plus(expirationHours, ChronoUnit.HOURS);
 
         return Jwts.builder()
                 .setHeaderParam("typ", "JWT")
                 .setSubject(loginId)
+                .claim("role", role) // Add the role claim
                 .setIssuedAt(Date.from(now))
                 .setExpiration(Date.from(expiry))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String generateAccessToken(String loginId) {
-        return generateToken(loginId, 1); // 1시간 유효
+    public String generateAccessToken(String loginId, String role) {
+        return generateToken(loginId, role, 1); // 1시간 유효
     }
 
-    public String generateRefreshToken(String loginId) {
-        return generateToken(loginId, 24 * 7); // 7일 유효
+    public String generateRefreshToken(String loginId, String role) {
+        return generateToken(loginId, role, 24 * 7); // 7일 유효
     }
 
     public Claims validateToken(String token) {

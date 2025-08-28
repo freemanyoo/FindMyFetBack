@@ -1,5 +1,6 @@
 package com.busanit501.findmyfet.domain;
 import jakarta.persistence.*;
+import com.busanit501.findmyfet.domain.post.Post;
 import lombok.*;
 
 import java.time.LocalDateTime;
