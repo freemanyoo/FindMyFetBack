@@ -8,6 +8,7 @@ import com.busanit501.findmyfet.dto.UserLoginRequestDTO;
 import com.busanit501.findmyfet.dto.UserSignupRequestDTO;
 import com.busanit501.findmyfet.dto.UserUpdateRequestDTO;
 import com.busanit501.findmyfet.dto.response.CommonResponse;
+import com.busanit501.findmyfet.security.UserDetailsImpl;
 import com.busanit501.findmyfet.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -55,7 +56,8 @@ public class UserController {
     }
 
     @GetMapping("/users/me")
-    public ResponseEntity<CommonResponse<UserInfoResponseDTO>> getMe(@AuthenticationPrincipal Long userId) {
+    public ResponseEntity<CommonResponse<UserInfoResponseDTO>> getMe(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Long userId = userDetails.getUserid(); // Get userId from UserDetailsImpl
         UserInfoResponseDTO responseDTO = userService.getMe(userId);
         return ResponseEntity.ok(CommonResponse.of("내 정보 조회 성공", responseDTO));
     }
