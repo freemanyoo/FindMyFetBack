@@ -46,10 +46,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .orElseThrow(() -> new RuntimeException("User not found"));
                 log.info("JwtAuthenticationFilter: User found: {}", user.getLoginId());
 
+                UserDetailsImpl userDetails = new UserDetailsImpl(user); // Create UserDetailsImpl instance
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        user.getUserId(), // Principal: 보통 유저의 고유 ID를 저장
+                        userDetails, // Principal: UserDetailsImpl 객체로 설정
                         null,
-                        Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+                        userDetails.getAuthorities() // UserDetailsImpl에서 권한 가져오기
                 );
                 log.info("JwtAuthenticationFilter: Authorities: {}", authentication.getAuthorities());
 

@@ -20,7 +20,7 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+// @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
